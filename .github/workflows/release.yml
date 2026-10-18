@@ -24,7 +24,7 @@ jobs:
       - name: Package
         run: |
           mkdir -p dist/swing_pico8
-          cp -r carts/es carts/en LICENSE README.md README.es.md dist/swing_pico8/
+          cp -r carts/es carts/en knulli LICENSE README.md README.es.md dist/swing_pico8/
           (cd dist && zip -qr "swing_pico8_${VERSION}.zip" swing_pico8)
       - name: Release notes from CHANGELOG.md
         run: |

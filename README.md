@@ -42,6 +42,17 @@ Download the zip from the [latest release](https://github.com/santiago-giordano/
 
 You can switch language in either version: press **X** on the song picker.
 
+### Images and videos in the game list (Knulli / Batocera)
+
+The `knulli/` folder has the metadata so the three carts show up with a description, screenshot and video in the PICO-8 list:
+
+1. Copy `knulli/images/` and `knulli/videos/` into `roms/pico8/` (you get `roms/pico8/images/…` and `roms/pico8/videos/…`).
+2. If you have **no** `roms/pico8/gamelist.xml`, copy `knulli/gamelist.en.xml` there and rename it to `gamelist.xml` (`gamelist.xml` is the Spanish one).
+3. If you **already** have one (from scraping other games), open it and paste the three `<game>…</game>` blocks before `</gameList>`.
+4. Start → *Game Settings → Update Gamelists*.
+
+Do it with the Knulli UI closed, or restart it afterwards: EmulationStation rewrites the gamelist when it exits.
+
 ### Which PICO-8?
 
 | Runtime | beats | keys | noise |
@@ -125,6 +136,7 @@ Keys and noise follow the song swing; the noise duck follows the kick track's ti
 python3 build.py          # src/*.lua -> carts/{es,en}/*.p8; fails if a cart exceeds PICO-8 limits
 bash tests/setup.sh       # builds fake-08 (libretro) + a headless frontend
 bash tests/run_all.sh     # build + every test below
+python3 tools/media.py    # regenerates knulli/ (scraper images, videos, gamelist)
 python3 tests/test_timing.py   # swing & nudge accuracy from rendered audio
 python3 tests/test_groove.py   # per-track swing, templates, flam, drift, humanize modes
 python3 tests/test_sync.py     # records the 3 stems and checks they line up
@@ -140,7 +152,7 @@ python3 tests/screens.py       # screenshots of every page -> docs/
 ### Notes
 
 - fake-08 resolves a missing table field to the global variable with the same name. The code avoids field names that collide with globals.
-- CPU on official PICO-8 is estimated from VM instruction counts, not measured on hardware: beats 15–26%, noise 22–46% with every layer at maximum. Use the CPU meter on the kit and fx pages to check on your device.
+- CPU: on an Anbernic RG CubeXX (Knulli, official PICO-8) swing_beats measured about 35–40% while playing. swing_noise is still an estimate (22–46% with every layer at maximum). The kit and fx pages have a CPU meter.
 - PICO-8 PCM is 8-bit at 5.5 kHz. That's part of the lofi sound.
 
 ## License

@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<gameList>
+	<game>
+		<path>./swing_beats.p8</path>
+		<name>Swing Beats</name>
+		<desc>Batería lofi por PCM con swing estilo J Dilla: 5 pistas de 16 pasos, swing por pista, groove templates, flam, deriva y humanización. Graba su stem con click de conteo para mezclar en un DAW. Parte de swing_pico8 junto con swing_keys y swing_noise.</desc>
+		<image>./images/swing_beats-image.png</image>
+		<thumbnail>./images/swing_beats-thumb.png</thumbnail>
+		<video>./videos/swing_beats-video.mp4</video>
+		<releasedate>20261018T000000</releasedate>
+		<developer>Santiago Giordano</developer>
+		<publisher>Santiago Giordano</publisher>
+		<genre>Música</genre>
+		<players>1</players>
+		<lang>es</lang>
+	</game>
+	<game>
+		<path>./swing_keys.p8</path>
+		<name>Swing Keys</name>
+		<desc>Bajo, lead y acordes por grados de la escala, con cuatriadas diatónicas, reverb, filtro, detune, wobble de cinta y eco sincronizado. Comparte la canción con swing_beats y swing_noise.</desc>
+		<image>./images/swing_keys-image.png</image>
+		<thumbnail>./images/swing_keys-thumb.png</thumbnail>
+		<video>./videos/swing_keys-video.mp4</video>
+		<releasedate>20261018T000000</releasedate>
+		<developer>Santiago Giordano</developer>
+		<publisher>Santiago Giordano</publisher>
+		<genre>Música</genre>
+		<players>1</players>
+		<lang>es</lang>
+	</game>
+	<game>
+		<path>./swing_noise.p8</path>
+		<name>Swing Noise</name>
+		<desc>Ambiente lofi por PCM: vinilo, cinta, lluvia, fuego, mar y noche, con presets, ducking con el bombo, fades y aguja de vinilo. Comparte la canción con swing_beats y swing_keys.</desc>
+		<image>./images/swing_noise-image.png</image>
+		<thumbnail>./images/swing_noise-thumb.png</thumbnail>
+		<video>./videos/swing_noise-video.mp4</video>
+		<releasedate>20261018T000000</releasedate>
+		<developer>Santiago Giordano</developer>
+		<publisher>Santiago Giordano</publisher>
+		<genre>Música</genre>
+		<players>1</players>
+		<lang>es</lang>
+	</game>
+</gameList>

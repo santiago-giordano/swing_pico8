@@ -42,6 +42,17 @@ Bajá el zip del [último release](https://github.com/santiago-giordano/swing_pi
 
 En cualquiera de las dos se cambia el idioma con **X** en la pantalla de elegir canción.
 
+### Imágenes y videos en la lista (Knulli / Batocera)
+
+La carpeta `knulli/` trae la metadata para que los tres cartuchos aparezcan con descripción, captura y video en la lista de PICO-8:
+
+1. Copiá `knulli/images/` y `knulli/videos/` dentro de `roms/pico8/` (quedan `roms/pico8/images/…` y `roms/pico8/videos/…`).
+2. Si **no** tenés `roms/pico8/gamelist.xml`, copiá `knulli/gamelist.xml` ahí (o `gamelist.en.xml` renombrado, para la versión en inglés).
+3. Si **ya** tenés uno (por haber scrapeado otros juegos), abrilo y pegá los tres bloques `<game>…</game>` de `knulli/gamelist.xml` antes de `</gameList>`.
+4. Start → *Game Settings → Update Gamelists*.
+
+Hacelo con la interfaz de Knulli cerrada o reiniciala después: EmulationStation reescribe el gamelist al salir.
+
 ### ¿Qué PICO-8?
 
 | Motor | beats | keys | noise |
@@ -99,6 +110,7 @@ Keys y noise siguen el swing de la canción; el ducking de noise sigue el timing
 python3 build.py               # src/*.lua -> carts/{es,en}/*.p8; falla si un cartucho pasa los límites de PICO-8
 bash tests/setup.sh            # compila fake-08 (libretro) + un frontend sin pantalla
 bash tests/run_all.sh          # build + todos los tests de abajo
+python3 tools/media.py         # regenera knulli/ (imágenes, videos y gamelist para el scraper)
 python3 tests/test_timing.py   # precisión de swing y nudge midiendo el audio
 python3 tests/test_groove.py   # swing por pista, templates, flam, deriva, modos de humanización
 python3 tests/test_sync.py     # graba los 3 stems y verifica que queden alineados
@@ -109,7 +121,7 @@ python3 tests/screens.py       # capturas de todas las páginas -> docs/
 - La CI (GitHub Actions) corre el chequeo de build y todos los tests en cada push. Al subir un tag `v*` se publica un release con el zip de cartuchos y la entrada correspondiente del CHANGELOG.
 - `src/core.lua` es común a los tres cartuchos: canción, secuenciador, reloj de audio, input, páginas y paleta.
 - Los tests corren los cartuchos en fake-08 con un **parche solo para pruebas** que agrega el canal PCM (`tests/fake08-test.patch`). Así se puede grabar a WAV y medir el sonido que daría el PICO-8 oficial.
-- La CPU en el PICO-8 oficial está estimada, no medida en la consola: entre 15 y 26% para beats y entre 22 y 46% para noise con todo al máximo. Para chequearla en tu equipo, las páginas kit y fx muestran la CPU.
+- CPU: en una Anbernic RG CubeXX (Knulli, PICO-8 oficial) swing_beats midió alrededor de 35–40 % sonando. La de swing_noise sigue estimada (22–46 % con todas las capas al máximo). Las páginas kit y fx muestran la CPU.
 
 ## Licencia
 
