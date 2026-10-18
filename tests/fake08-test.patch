@@ -1,0 +1,133 @@
+diff --git a/source/Audio.cpp b/source/Audio.cpp
+index 6a41fef..4cba61f 100644
+--- a/source/Audio.cpp
++++ b/source/Audio.cpp
+@@ -575,6 +575,10 @@ float Audio::get_synth_sample(z8::synth_param& params)
+     return std::clamp(waveform * volume, -1.0f, 1.0f);
+ }
+ 
++#include <deque>
++std::deque<uint8_t> g_pcm;
++static int g_pcm_sub = 0;
++static uint8_t g_pcm_cur = 128;
+ void Audio::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
+     if (audioBuffer == nullptr) {
+         return;
+@@ -788,6 +792,14 @@ void Audio::FillAudioBuffer(void *audioBuffer, size_t offset, size_t size){
+             channel_mix += chan_sample;
+         }
+ 
++        // TEST PATCH: pcm channel (serial 0x808), 5512.5hz -> 22050hz
++        if (g_pcm_sub == 0) {
++            if (!g_pcm.empty()) { g_pcm_cur = g_pcm.front(); g_pcm.pop_front(); }
++            else g_pcm_cur = 128;
++        }
++        g_pcm_sub = (g_pcm_sub + 1) & 3;
++        channel_mix += ((int)g_pcm_cur - 128) * 256.0f;
++
+         sample = (int32_t)std::clamp(channel_mix, -32767.9f, 32767.9f);
+ 
+         //buffer is stereo, so just send the mono sample to both channels
+diff --git a/source/p8GlobalLuaFunctions.h b/source/p8GlobalLuaFunctions.h
+index 3158b96..a5dc721 100644
+--- a/source/p8GlobalLuaFunctions.h
++++ b/source/p8GlobalLuaFunctions.h
+@@ -98,8 +98,7 @@ function deli(c,i)
+ end
+ 
+ function serial(chan, address, len)
+-    --stubbed out
+-    --return len
++    if chan == 0x808 then __pcmwrite(address, len) end
+ end
+ 
+ 
+diff --git a/source/picoluaapi.cpp b/source/picoluaapi.cpp
+index 721abb7..d02cb73 100644
+--- a/source/picoluaapi.cpp
++++ b/source/picoluaapi.cpp
+@@ -817,6 +817,16 @@ int time(lua_State *L) {
+     return 1;
+ }
+ 
++#include <deque>
++extern std::deque<uint8_t> g_pcm;
++int pcmwrite(lua_State *L) {
++    int addr = (int)lua_tonumber(L, 1);
++    int len = (int)lua_tonumber(L, 2);
++    for (int i = 0; i < len; i++) {
++        if (g_pcm.size() < 8192) g_pcm.push_back(_vmForLuaApi->vm_peek(addr + i));
++    }
++    return 0;
++}
+ int stat(lua_State *L) {
+     int n = (int)lua_tonumber(L, 1);
+ 
+@@ -1005,7 +1015,7 @@ int stat(lua_State *L) {
+             return 1;
+         //unknown? used by serial carts
+         case 108:
+-            lua_pushnumber(L, 32);
++            lua_pushnumber(L, (int)g_pcm.size());
+             return 1;
+         break;
+         //bytestream availability (dropped file or image. not supported)
+diff --git a/source/picoluaapi.h b/source/picoluaapi.h
+index d012fe9..8482a5c 100644
+--- a/source/picoluaapi.h
++++ b/source/picoluaapi.h
+@@ -75,6 +75,7 @@ int stat(lua_State *L);
+ 
+ //memory api
+ int cstore(lua_State *L);
++int pcmwrite(lua_State *L);
+ int api_memcpy(lua_State *L);
+ int api_memset(lua_State *L);
+ int peek(lua_State *L);
+diff --git a/source/vm.cpp b/source/vm.cpp
+index 63a6a63..7caf10e 100644
+--- a/source/vm.cpp
++++ b/source/vm.cpp
+@@ -122,6 +122,7 @@ bool _initializeLuaState(lua_State* luaState) {
+ 
+     //memory
+     lua_register(luaState, "cstore", cstore);
++    lua_register(luaState, "__pcmwrite", pcmwrite);
+     lua_register(luaState, "memcpy", api_memcpy);
+     lua_register(luaState, "memset", api_memset);
+     lua_register(luaState, "peek", peek);
+@@ -393,7 +394,7 @@ bool Vm::loadCart(Cart* cart) {
+ 
+             if (doStrRes != LUA_OK){
+                 //bad lua passed
+-                Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
++                Logger_Write("Error: %s\n", lua_tostring(_luaState, -1)); fprintf(stderr, "LUAERR load: %s\n", lua_tostring(_luaState, -1));
+                 lua_pop(_luaState, 1);
+             }
+         }
+@@ -619,6 +620,7 @@ bool Vm::Step(){
+     if (status != LUA_OK)
+     {
+         char const *message = lua_tostring(_luaState, -1);
++        fprintf(stderr, "LUAERR: %s\n", message);
+         Logger_Write("error calling tick function: %s\n", message);
+         _cartLoadError = "Error in main loop: " + std::string(message);
+         lua_pop(_luaState, 1);
+@@ -706,7 +708,7 @@ bool Vm::Step(){
+ //         if (lua_isfunction(_luaState, -1)) {
+ //             if (lua_pcall(_luaState, 0, 0, 0)){
+ //                 _cartLoadError = lua_tostring(_luaState, -1);
+-//                 Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
++//                 Logger_Write("Error: %s\n", lua_tostring(_luaState, -1)); fprintf(stderr, "LUAERR load: %s\n", lua_tostring(_luaState, -1));
+ //                 lua_pop(_luaState, 1);
+ //                 QueueCartChange(BiosCartName);
+ //                 return;
+@@ -719,7 +721,7 @@ bool Vm::Step(){
+ //         if (lua_isfunction(_luaState, -1)) {
+ //             if (lua_pcall(_luaState, 0, 0, 0)){
+ //                 _cartLoadError = lua_tostring(_luaState, -1);
+-//                 Logger_Write("Error: %s\n", lua_tostring(_luaState, -1));
++//                 Logger_Write("Error: %s\n", lua_tostring(_luaState, -1)); fprintf(stderr, "LUAERR load: %s\n", lua_tostring(_luaState, -1));
+ //                 lua_pop(_luaState, 1);
+ //                 QueueCartChange(BiosCartName);
+ //                 return;
