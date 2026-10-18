@@ -553,6 +553,9 @@ function syn(n,f0,f1,pd,ad,ta,na,nd,nc,hp,ck)
 end
 
 function renderall()
+ -- corta las voces: los buffers
+ -- nuevos pueden ser mas cortos
+ vp={}
  local k=split(kits[gd(123)+1])
  local tu=tunes[(gd(127)>>2&7)+1]
  for t=1,5 do
@@ -788,14 +791,16 @@ function lvlcell(t,s)
 end
 
 function kitpage()
- local function rr(i,lo,hi) return function(d) clampset(i,d,lo,hi) renderall() end end
+ -- color, saturacion y sala se aplican
+ -- en vivo (dspvars): no resintetizan
+ local function cs(i) return function(d) clampset(i,d,0,7) end end
  local its={
   {x=2,y=48,l="kit",v=function() return kitn[gd(123)+1] end,a=function(d) sd(123,(gd(123)+d)%3) renderall() end,w=56},
   {x=66,y=48,l=tx("afinar","tune"),v=function() return (gd(127)>>2&7)-3 end,a=function(d)
    local f=gd(127) sd(127,f&0xe3|mid(0,6,(f>>2&7)+d)<<2) renderall() end,w=56},
-  {x=2,y=60,l=tx("color","tone"),v=function() return gd(124) end,a=rr(124,0,7),w=56},
-  {x=66,y=60,l=tx("saturar","drive"),v=function() return gd(125) end,a=rr(125,0,7),w=56},
-  {x=2,y=72,l=tx("sala","room"),v=function() return gd(126) end,a=rr(126,0,7),w=56},
+  {x=2,y=60,l=tx("color","tone"),v=function() return gd(124) end,a=cs(124),w=56},
+  {x=66,y=60,l=tx("saturar","drive"),v=function() return gd(125) end,a=cs(125),w=56},
+  {x=2,y=72,l=tx("sala","room"),v=function() return gd(126) end,a=cs(126),w=56},
   {x=66,y=72,l="crush",v=function() return gd(127)&3 end,a=function(d)
    local f=gd(127) sd(127,f&0xfc|mid(0,3,(f&3)+d)) end,w=56},
   {x=2,y=84,l=tx("motor","engine"),v=function() return pcm and "pcm" or "chip" end,a=function()
