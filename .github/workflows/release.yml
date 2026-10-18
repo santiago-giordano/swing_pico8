@@ -1,12 +1,22 @@
 name: release
+# Publishes a GitHub release with the carts zip and the CHANGELOG entry.
+# Run it by hand (Actions -> release -> Run workflow, version e.g. v2.1.0)
+# or by pushing a v* tag.
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version tag to create, e.g. v2.1.0"
+        required: true
 permissions:
   contents: write
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ inputs.version || github.ref_name }}
     steps:
       - uses: actions/checkout@v4
       - name: Build carts
@@ -15,13 +25,14 @@ jobs:
         run: |
           mkdir -p dist/swing_pico8
           cp -r carts/es carts/en LICENSE README.md README.es.md dist/swing_pico8/
-          (cd dist && zip -qr "swing_pico8_${GITHUB_REF_NAME}.zip" swing_pico8)
+          (cd dist && zip -qr "swing_pico8_${VERSION}.zip" swing_pico8)
       - name: Release notes from CHANGELOG.md
         run: |
-          v="${GITHUB_REF_NAME#v}"
-          awk -v v="$v" '/^## /{p = index($0, "[" v "]") > 0; next} p' CHANGELOG.md > notes.md
-          [ -s notes.md ] || echo "swing_pico8 $GITHUB_REF_NAME" > notes.md
+          v="${VERSION#v}"
+          awk -v v="$v" '/^## /{p = index($0, "[" v "]") > 0; next} /^\[/{p = 0} p' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "swing_pico8 $VERSION" > notes.md
+          cat notes.md
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" "dist/swing_pico8_${GITHUB_REF_NAME}.zip" --title "swing_pico8 $GITHUB_REF_NAME" --notes-file notes.md
+        run: gh release create "$VERSION" "dist/swing_pico8_${VERSION}.zip" --target "$GITHUB_SHA" --title "swing_pico8 $VERSION" --notes-file notes.md
