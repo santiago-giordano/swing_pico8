@@ -101,3 +101,7 @@ python3 tests/screens.py       # screenshots of every page -> docs/
 - fake-08 resolves a missing table field to the global variable with the same name. The code avoids field names that collide with globals.
 - CPU on official PICO-8 is estimated from VM instruction counts, not measured on hardware: beats 15–26%, noise 22–46% with every layer at maximum. Use the CPU meter on the kit and fx pages to check on your device.
 - PICO-8 PCM is 8-bit at 5.5 kHz. That's part of the lofi sound.
+
+## License
+
+[MIT](LICENSE). `tests/fake08-test.patch` modifies [fake-08](https://github.com/jtothebell/fake-08), which is also MIT-licensed. PICO-8 is a product of Lexaloffle Games; this project is not affiliated with them.

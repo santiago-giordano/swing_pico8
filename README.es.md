@@ -69,3 +69,7 @@ python3 tests/screens.py       # capturas de todas las páginas -> docs/
 - `src/core.lua` es común a los tres cartuchos: canción, secuenciador, reloj de audio, input, páginas y paleta.
 - Los tests corren los cartuchos en fake-08 con un **parche solo para pruebas** que agrega el canal PCM (`tests/fake08-test.patch`). Así se puede grabar a WAV y medir el sonido que daría el PICO-8 oficial.
 - La CPU en el PICO-8 oficial está estimada, no medida en la consola: entre 15 y 26% para beats y entre 22 y 46% para noise con todo al máximo. Para chequearla en tu equipo, las páginas kit y fx muestran la CPU.
+
+## Licencia
+
+[MIT](LICENSE). `tests/fake08-test.patch` modifica [fake-08](https://github.com/jtothebell/fake-08), que también es MIT. PICO-8 es un producto de Lexaloffle Games; este proyecto no está afiliado a ellos.
