@@ -18,7 +18,7 @@ All three share the same song (8 slots), so tempo, swing, key, scale and arrange
 
 ### The groove is the point
 
-Dilla time isn't randomness, it's *programmed* timing that repeats every bar. So the swing here works that way:
+Dilla time comes from programmed timing: each drum voice has its own offsets, and they repeat every bar. The swing here works that way:
 
 - Swing 50–75 %, on a 16th or 8th base, plus **per-track swing**
 - **Groove templates** with per-step offsets (septuplet, 5/192 snare, golden ratio, "drunk"…)

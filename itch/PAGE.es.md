@@ -18,7 +18,7 @@ Los tres comparten la misma canción (8 espacios), así que tempo, swing, tono, 
 
 ### El groove es lo importante
 
-El tiempo Dilla no es azar: es timing **programado** que se repite en cada compás. El swing de acá funciona así:
+El tiempo Dilla sale de un timing programado: cada voz de la batería tiene sus propios corrimientos y se repiten en cada compás. El swing de acá funciona así:
 
 - Swing de 50 a 75 %, con base de semicorchea o corchea, más **swing por pista**
 - **Groove templates** con desfasajes por paso (septillo, snare 5/192, áureo, "borracho"…)

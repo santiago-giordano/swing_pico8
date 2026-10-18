@@ -82,7 +82,7 @@ La batería y los ruidos usan el canal PCM de PICO-8 (`serial(0x808)`), que fake
 
 ## Groove: timing estilo Dilla
 
-El feel "borracho" de J Dilla no es más swing ni más azar: cada voz de la batería va en su propia rejilla al mismo tiempo (hats rectos, snare apurada, bombo que arrastra) y los corrimientos se repiten iguales en cada compás. La página **groove** de swing_beats lo modela así:
+El feel "borracho" de J Dilla sale de que cada voz de la batería va en su propia rejilla al mismo tiempo (hats rectos, snare apurada, bombo que arrastra), con corrimientos que se repiten iguales en cada compás. La página **groove** de swing_beats lo modela así:
 
 | Control | Qué hace |
 |---|---|

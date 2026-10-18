@@ -82,7 +82,7 @@ The drums and the ambience use PICO-8's PCM channel (`serial(0x808)`), which fak
 
 ## Groove: Dilla-style timing
 
-J Dilla's "drunk" feel is not more swing or more randomness: each drum voice sits on its own grid at the same time (straight hats, rushed snare, dragging kick) and the offsets repeat identically every bar. The **groove** page of swing_beats models that:
+J Dilla's "drunk" feel comes from each drum voice sitting on its own grid at the same time (straight hats, rushed snare, dragging kick), with offsets that repeat identically every bar. The **groove** page of swing_beats models that:
 
 | Control | What it does |
 |---|---|
