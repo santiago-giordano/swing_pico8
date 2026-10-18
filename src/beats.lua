@@ -69,6 +69,17 @@ function renderall()
   vb[t]=syn(unpack(q))
   vn[t]=q[1]
  end
+ -- parlante: satura el bombo para
+ -- que tenga armonicos audibles en
+ -- un parlante chico (bit 5 = off)
+ if gd(127)&32<1 then
+  local b,ph,a,f=vb[1],0,1,700*tu
+  for i,v in ipairs(b) do
+   ph+=f/sr f=max(300*tu,f*.997) a*=.993
+   v+=sin(ph)*a
+   b[i]=v*5/(1+abs(v*4))
+  end
+ end
  cka=syn(140,2200,2200,1,40,1,0,1,1,0,0)
  ckb=syn(140,1600,1600,1,30,.7,0,1,1,0,0)
  mkchip()
@@ -309,11 +320,13 @@ function kitpage()
    local f=gd(127) sd(127,f&0xfc|mid(0,3,(f&3)+d)) end,w=56},
   {x=2,y=84,l=tx("motor","engine"),v=function() return pcm and "pcm" or "chip" end,a=function()
    if (pcmok) pcm=not pcm
-  end,w=56}}
+  end,w=56},
+  {x=66,y=84,l=tx("parlante","speaker"),v=function() return gd(127)&32<1 and tx("si","on") or "no" end,a=function()
+   sd(127,gd(127)^^32) renderall() end,w=56}}
  for t in all(its) do t.k=function() hit(1,3) hit(4,2) end end
  return ipage("kit",its,function()
-  if (not pcmok) print(tx("sin pcm: usa pico-8 oficial","no pcm: use official pico-8"),2,100,8)
-  cpu(96,84)
+  if (not pcmok) print(tx("sin pcm: usa pico-8 oficial","no pcm: use official pico-8"),2,106,8)
+  cpu(96,96)
  end,tx("o:escuchar  o+<>:ajustar","o:listen  o+<>:adjust"))
 end
 

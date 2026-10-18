@@ -2,6 +2,14 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/). Versions follow [SemVer](https://semver.org/).
 
+## [2.3.0] - 2026-10-18
+
+### Fixed
+- On a handheld speaker the kick was nearly inaudible (its body sits at 50–160 Hz) while the hat came out as the loudest hit, so the KIK and HAT rows seemed swapped. New **speaker** option on the kit page, on by default: the kick gets a short knock (700 → 300 Hz) and saturation. Above 400 Hz the kick now sits within about ±6 dB of the hat, up from 14–19 dB below.
+
+### Changed
+- CPU meter on the kit page moved down a row to make room for the new option.
+
 ## [2.2.0] - 2026-10-18
 
 ### Added

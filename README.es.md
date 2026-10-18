@@ -121,6 +121,7 @@ python3 tests/screens.py       # capturas de todas las páginas -> docs/
 - La CI (GitHub Actions) corre el chequeo de build y todos los tests en cada push. Al subir un tag `v*` se publica un release con el zip de cartuchos y la entrada correspondiente del CHANGELOG.
 - `src/core.lua` es común a los tres cartuchos: canción, secuenciador, reloj de audio, input, páginas y paleta.
 - Los tests corren los cartuchos en fake-08 con un **parche solo para pruebas** que agrega el canal PCM (`tests/fake08-test.patch`). Así se puede grabar a WAV y medir el sonido que daría el PICO-8 oficial.
+- Parlante: el de una consola portátil no reproduce el cuerpo del bombo (50–160 Hz). La opción **parlante** de la página kit (activada por defecto) le suma un golpe corto en medios y saturación para que se siga oyendo como bombo. Con auriculares o por la salida de línea podés apagarla y queda un bombo más redondo.
 - CPU: en una Anbernic RG CubeXX (Knulli, PICO-8 oficial) swing_beats midió alrededor de 35–40 % sonando. La de swing_noise sigue estimada (22–46 % con todas las capas al máximo). Las páginas kit y fx muestran la CPU.
 
 ## Licencia

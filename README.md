@@ -110,7 +110,8 @@ Keys and noise follow the song swing; the noise duck follows the kick track's ti
 
 - **pattern**: kik / snr / rim / hat / opn, 16 steps, velocities ghost / mid / hard. O+←→ rotates the row.
 - **groove** (Dilla-style microtiming, see below): song swing 50–75% on a 16th or 8th base, per-track swing, per-track nudge −64…+60 ms, flam, level, 8 groove templates/presets, phrase drift and three humanize modes.
-- **kit**: dusty / soft / tape kits (synthesized at load), tune, tone (low-pass), drive, room, crush. Also an engine switch (pcm / chip) and a CPU meter.
+- **kit**: dusty / soft / tape kits (synthesized at load), tune, tone (low-pass), drive, room, crush. Also an engine switch (pcm / chip), a **speaker** switch and a CPU meter.
+- **speaker** (on by default) adds a short mid-range knock and saturation to the kick, so it still reads as a kick on a handheld's small speaker, which can't play its 50–160 Hz body. Turn it off for a rounder kick on headphones or line out.
 - The PCM engine schedules hits at sample level (5512.5 Hz): measured swing and nudge error is under 1 ms.
 </details>
 
