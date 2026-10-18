@@ -6,7 +6,7 @@ Tres cartuchos de PICO-8 para armar y grabar **lofi por stems**, pensados para c
 
 | Cartucho | Qué hace |
 |---|---|
-| `swing_beats.p8` | Batería por PCM: 5 pistas, swing estilo MPC con precisión de muestra, nudge por pista, 3 kits, color, saturación, sala y crush |
+| `swing_beats.p8` | Batería por PCM: 5 pistas, swing con precisión de muestra (estilo MPC y grooves por pista estilo Dilla), nudge por pista, 3 kits, color, saturación, sala y crush |
 | `swing_keys.p8` | Bajo, lead y acordes por grados de la escala, con reverb, filtro, detune, wobble y eco sincronizado por instrumento |
 | `swing_noise.p8` | Ambiente por PCM: vinilo, cinta, lluvia, fuego, mar y noche, con presets, ducking con el bombo, fades y aguja de vinilo |
 
@@ -50,6 +50,24 @@ La batería y los ruidos usan el canal PCM de PICO-8 (`serial(0x808)`), que fake
 - Cada canción es un archivo de cartdata, `swingbox_cancionN.p8d.txt`, en la carpeta `cdata` de PICO-8. Copiando ese archivo respaldás o compartís la canción entera.
 - En la página **canción** se configuran BPM, swing, tono, escala, largo del arreglo, click de conteo y modo (loop o cadena). El arreglo tiene 16 bloques. Cada bloque elige un patrón de beats (letra de arriba) y uno de keys (letra de abajo), y se repite de ×1 a ×8. Cada parte se puede silenciar por bloque para hacer breaks.
 
+## Groove: timing estilo Dilla
+
+El feel "borracho" de J Dilla no es más swing ni más azar: cada voz de la batería va en su propia rejilla al mismo tiempo (hats rectos, snare apurada, bombo que arrastra) y los corrimientos se repiten iguales en cada compás. La página **groove** de swing_beats lo modela así:
+
+| Control | Qué hace |
+|---|---|
+| swg / base | Swing de la canción, 50–75%. Base 16 retrasa las semicorcheas impares (MPC); base 8 retrasa la corchea débil y las semicorcheas del medio la siguen. Valores tuplet: 57% ≈ septillo, 60% quintillo, 62% ≈ áureo, 66% tresillo |
+| sw (por pista) | Swing propio de cada voz; `--` sigue el de la canción |
+| nudge | Corre toda la pista de −64 a +60 ms (entran las snares adelantadas: los eventos se programan con 100 ms de anticipación) |
+| fl | Flam: un golpe ghost 10/20/30 ms antes de cada golpe medio o fuerte |
+| grv | Groove template: offsets por paso en 1/48 de paso, así escalan con el tempo. **Tocando O** se aplica su preset (swing por pista, flam, humanización y deriva; los nudges vuelven a 0) |
+| deriva | El swing crece 0–3% por compás en las pistas con swing y vuelve cada 4 compases |
+| hum | 0–15 ms, modo **azar** (ruido blanco), **suave** (AR(1) correlacionado, más parecido a cómo deriva un baterista) o **fijo** (los mismos microdesfasajes en cada compás) |
+
+Templates: ninguno, get dis (backbeat −4/48 y dos hats tarde), septillo (backbeat −1/64), 5/192 (snare 5/192 de compás antes, ≈ 69 ms a 90 BPM), quint (hats +0,4 paso), áureo, apurado (snare −1/4 de paso) y borracho. Son puntos de partida para escuchar, no valores medidos de Dilla.
+
+Keys y noise siguen el swing de la canción; el ducking de noise sigue el timing de la pista de bombo. En keys el nudge por instrumento va de −64 a +60 ms (sirve para un bajo atrás del beat).
+
 ## Grabar por la salida de línea
 
 1. Conectá la salida de auriculares a la interfaz o grabadora.
@@ -62,6 +80,7 @@ La batería y los ruidos usan el canal PCM de PICO-8 (`serial(0x808)`), que fake
 python3 build.py               # src/*.lua -> carts/{es,en}/*.p8 (y cuenta tokens)
 bash tests/setup.sh            # compila fake-08 (libretro) + un frontend sin pantalla
 python3 tests/test_timing.py   # precisión de swing y nudge midiendo el audio
+python3 tests/test_groove.py   # swing por pista, templates, flam, deriva, modos de humanización
 python3 tests/test_sync.py     # graba los 3 stems y verifica que queden alineados
 python3 tests/screens.py       # capturas de todas las páginas -> docs/
 ```

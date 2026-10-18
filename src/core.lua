@@ -6,10 +6,14 @@
 -- 6 semilla 7 largo 8 click
 -- 16-31 cadena (arreglo)
 -- 32-127 beats 128-239 keys
+-- 9 groove 10 deriva 11-12 flam
+-- 13 base swing (0=16, 1=8)
 -- 240-255 noise
 dd=0x5e00
 sr=5512.5
-lead=230
+-- anticipacion ~100ms: deja
+-- adelantar golpes (snare dilla)
+lead=551
 notes=split("c,c#,d,d#,e,f,f#,g,g#,a,a#,b")
 -- idioma: 1 espanol, 2 english
 -- (x en el selector lo cambia)
@@ -57,15 +61,71 @@ playing=false seqon=false
 mode=1 ep=0 cur=-1 curp=0 curc=0
 pq={} uiq={} tail=0 fl={}
 sq,nxt,bl=0,9999,0
+bn,hh=0,{}
 
-function steplen()
- local l,w=sr/gd(2)*15,gd(3)/50
- return stp%2==0 and l*w or l*(2-w)
+-- rejilla recta; el swing va
+-- como offset de cada evento
+function steplen() return sr/gd(2)*15 end
+
+-- offset de swing en el paso s
+-- base 16: corre semicorcheas
+-- impares. base 8: corre la
+-- corchea debil (0,k,2k,k)
+function swo(w,s)
+ local k,q=(w-50)/50*steplen(),s%4
+ if gd(13)>0 then
+  return (q==2 and 2 or q%2)*k
+ end
+ return s%2*k
+end
+
+-- groove templates: 5 pistas x
+-- 16 pasos, offset en 1/48 de
+-- paso (char-64). escala con bpm
+grv={
+"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+"@@@@@@@@@@@@@@@@@@@@<@@@@@@@<@@@@@@@@@@@@@@@@@@@@@C@@@@@@@C@@@@@@@@@@@@@@@@@@@@@",
+"@@@@@@@@@@@@@@@@@@@@4@@@@@@@4@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+"@@@@@@@@@@@@@@@@,,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+"@@@@@@@@@@@@@@@@4444444444444444@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+"@F@F@F@F@F@F@F@F::::::::::::::::@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"}
+
+-- swing de la pista t de beats
+-- (0 en bits 3-7 = el global)
+-- mas la deriva por compas
+function bsw(t)
+ local w=gd(118+t)\8
+ w=w>0 and w+49 or gd(3)
+ if (w>50) w+=gd(10)*(bn%4)
+ return w
+end
+
+-- offset fijo de la pista t de
+-- beats en el paso s (muestras)
+function boff(t,s)
+ return swo(bsw(t),s)+(ord(grv[gd(9)+1],t*16+s+1)-64)/48*steplen()+sgd(112+t)*5.5125
+end
+
+-- humanizacion (muestras). modos:
+-- 0 libre: ruido blanco
+-- 1 deriva: ar(1) correlacionado
+-- 2 fijo: igual en cada compas
+function hum(k,s)
+ local a,g=gd(117)&15,rnd(2)-1
+ local md=gd(117)\16
+ if md==1 then
+  g=mid(-1,1,(hh[k] or 0)*.85+g*.53) hh[k]=g
+ elseif md==2 then
+  g=(s*37+k*91+gd(6))*.618034%1*2-1
+ end
+ return g*a*5.5125
 end
 
 function startplay(r)
  rec=r playing=true seqon=true
- srand(gd(6))
+ srand(gd(6)) bn=0 hh={}
  ci,rep,st,cnt=0,0,0,0
  if (r) mode=1 cnt=gd(8)>0 and 16 or 0
  pq,uiq={},{}
@@ -107,7 +167,7 @@ function seqstep(i)
  if (not mt) trig(i,pp,st)
  st+=1
  if st==16 then
-  st=0
+  st=0 bn+=1
   if mode==1 then
    rep+=1
    if rep>=1<<(gd(16+ci)>>4&3) then

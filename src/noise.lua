@@ -125,7 +125,7 @@ function trig(i,p,s)
  -- ducking con el bombo de beats
  local e=gd(16+ci)
  if gd(247)>0 and (mode==0 or e&64==0) and fg(32+p*20,s,2)>0 then
-  push(i+lead+sgd(112)*5.5125,{dk=1})
+  push(i+lead+max(-lead,boff(0,s)),{dk=1})
  end
  local f=1
  if mode==1 then

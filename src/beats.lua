@@ -7,6 +7,8 @@ velg={.35,.65,1}
 tunes={.84,.89,.94,1,1.06,1.12,1.19}
 function lstr()
  kitn=split(tx("polvo,suave,cinta","dusty,soft,tape"))
+ hmn=split(tx("azar,suave,fijo","rand,smth,lock"))
+ grn=split(tx("ninguno,get dis,septillo,5/192,quint,aureo,apurado,borracho","none,get dis,septet,5/192,quint,golden,rush,drunk"))
 end
 -- por pista: largo,f0,f1,caida
 -- tono,caida amp,tono,ruido,
@@ -30,7 +32,7 @@ function initpart()
    local s=defp[p]
    for k=0,79 do fs(32+(p-1)*20,k,2,ord(s,k+1)-48) end
   end
-  local d={64,82,74,56,56,4,6,5,4,4,4,0,5,2,2,140}
+  local d={64,82,74,56,56,20,6,5,4,4,4,0,5,2,2,140}
   for i=1,16 do sd(111+i,d[i]) end
  end
  renderall()
@@ -142,7 +144,12 @@ function trig(i,p,s)
  for t=0,4 do
   local v=fg(32+p*20,t*16+s,2)
   if v>0 then
-   push(i+lead+(sgd(112+t)+(rnd(2)-1)*gd(117))*5.5125,{h=t+1,v=v})
+   local o=i+lead+max(-lead,boff(t,s)+hum(t,s))
+   -- flam: golpe ghost antes
+   -- de los golpes medios/fuertes
+   local f=fg(11,t,2)*55.125
+   if (f>0 and v>1) push(max(i,o-f),{h=t+1,v=1})
+   push(o,{h=t+1,v=v})
   end
  end
 end
@@ -150,7 +157,7 @@ end
 function hit(t,v,i)
  add(uiq,{f=(bl+(i or 0))/91.875,pad=t})
  if pcm then
-  vp[t],vg[t]=1,gd(117+t)/7*velg[v]
+  vp[t],vg[t]=1,(gd(117+t)&7)/7*velg[v]
   if (t==4) vp[5]=nil
  else
   sfx((t-1)*3+v-1,chch[t])
@@ -218,35 +225,69 @@ function gridpage()
  return p
 end
 
-function groovepage()
- local its={
-  {x=2,y=46,l="swing",v=function() return gd(3).."%" end,a=function(d) clampset(3,d,50,75) end,w=38},
-  {x=46,y=46,l="bpm",v=function() return gd(2) end,a=function(d) clampset(2,d,60,160) end,w=32},
-  {x=84,y=46,l="hum",v=function() return gd(117).."ms" end,a=function(d) clampset(117,d,0,15) end,w=40}}
+-- presets de groove: swing por
+-- pista (char-64, @=global), flam
+-- por pista, hum, modo, deriva
+gpre=split("@@@@@00000000,AAADD00000310,AAAHH00000410,AAACC00000210,AAAAA00000310,AAAMM00000310,AAAAA00000310,AAAHH02000511")
+function applyg()
+ local s=gpre[gd(9)+1]
  for t=0,4 do
-  add(its,{x=16,y=60+t*10,t=t,d=nudgecell,a=function(d) clampset(112+t,d*2,24,104) end})
-  add(its,{x=88,y=60+t*10,t=t,d=lvlcell,a=function(d) clampset(118+t,d,0,7) end})
+  sd(118+t,gd(118+t)&7|(ord(s,t+1)-64)<<3) sd(112+t,64)
+  fs(11,t,2,ord(s,t+6)-48)
+ end
+ sd(117,ord(s,11)-48|(ord(s,12)-48)<<4)
+ sd(10,ord(s,13)-48)
+end
+
+function groovepage()
+ local function hs(a,m) sd(117,mid(0,15,a)|m<<4) end
+ local its={
+  {x=2,y=46,l="swg",v=function() return gd(3).."%" end,a=function(d) clampset(3,d,50,75) end,w=32},
+  {x=38,y=46,l="base",v=function() return gd(13)>0 and 8 or 16 end,a=function() sd(13,1-gd(13)) end,w=30},
+  {x=70,y=46,l="hum",v=function() return (gd(117)&15).."ms" end,a=function(d) hs((gd(117)&15)+d,gd(117)\16) end,w=32},
+  {x=106,y=46,l="",v=function() return hmn[(gd(117)\16)+1] end,a=function(d) hs(gd(117)&15,((gd(117)\16)+d)%3) end,w=20},
+  {x=2,y=55,l="grv",v=function() return grn[gd(9)+1] end,a=function(d) sd(9,(gd(9)+d)%8) end,k=applyg,w=62},
+  {x=70,y=55,l=tx("deriva","drift"),v=function() return "+"..gd(10).."%" end,a=function(d) clampset(10,d,0,3) end,w=56}}
+ for t=0,4 do
+  local y=72+t*8
+  add(its,{x=18,y=y,t=t,d=swcell,a=function(d)
+   local b=gd(118+t) sd(118+t,b&7|mid(0,26,b\8+d)<<3) end})
+  add(its,{x=36,y=y,t=t,d=nudgecell,a=function(d) clampset(112+t,d*2,0,124) end})
+  add(its,{x=92,y=y,t=t,d=flcell,a=function(d) fs(11,t,2,mid(0,3,fg(11,t,2)+d)) end})
+  add(its,{x=104,y=y,t=t,d=lvlcell,a=function(d)
+   local b=gd(118+t) sd(118+t,b&~7|mid(0,7,(b&7)+d)) end})
  end
  return ipage("groove",its,function()
-  print("-  nudge ms  +",14,54,5) print(tx("nivel","level"),96,54,5)
-  for t=0,4 do print(tn[t+1],1,61+t*10,6) end
- end,tx("o+<>:ajustar  x+<>:pagina","o+<>:adjust  x+<>:page"))
+  print("sw  - nudge ms +  fl",18,64,5)
+  print(tx("nvl","lvl"),106,64,5)
+  for t=0,4 do print(tn[t+1],1,72+t*8,6) end
+ end,tx("o en grv: aplica preset","o on grv: apply preset"))
+end
+
+function swcell(t,s)
+ local w=gd(118+t.t)\8
+ print(w>0 and w+49 or "--",t.x,t.y,s and 9 or w>0 and 6 or 5)
 end
 
 function nudgecell(t,s)
  local y,n=t.y,sgd(112+t.t)
- line(16,y+3,60,y+3,1)
- line(38,y,38,y+6,2)
- local x=38+n*.5
- rectfill(min(38,x),y+2,max(38,x),y+4,s and 9 or 13)
+ line(36,y+3,70,y+3,1)
+ line(53,y,53,y+6,2)
+ local x=53+n*.26
+ rectfill(min(53,x),y+2,max(53,x),y+4,s and 9 or 13)
  local v=(n>0 and "+" or "")..n
- print(v,80-#v*4,y,s and 7 or 6)
+ print(v,89-#v*4,y,s and 7 or 6)
+end
+
+function flcell(t,s)
+ local f=fg(11,t.t,2)
+ print(f>0 and f*10 or "-",t.x,t.y,s and 9 or f>0 and 6 or 5)
 end
 
 function lvlcell(t,s)
- local l=gd(118+t.t)
+ local l=gd(118+t.t)&7
  for k=0,6 do
-  rectfill(88+k*5,t.y+1,91+k*5,t.y+5,k<l and (s and 9 or 13) or 1)
+  rectfill(104+k*3,t.y+1,105+k*3,t.y+5,k<l and (s and 9 or 13) or 1)
  end
 end
 

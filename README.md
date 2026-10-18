@@ -6,7 +6,7 @@ Three PICO-8 carts for making and recording **lofi beats in stems**, built for h
 
 | Cart | What it does |
 |---|---|
-| `swing_beats.p8` | Drums over PCM: 5 tracks, sample-accurate MPC-style swing, per-track nudge, 3 kits, tone/drive/room/crush |
+| `swing_beats.p8` | Drums over PCM: 5 tracks, sample-accurate swing (MPC and Dilla-style per-track grooves), per-track nudge, 3 kits, tone/drive/room/crush |
 | `swing_keys.p8` | Bass, lead and chords written as scale degrees; per-instrument reverb, filter, detune, tape wobble, tempo-synced echo |
 | `swing_noise.p8` | Ambience over PCM: vinyl, tape, rain, fire, sea, night; presets, kick-synced ducking, fades, needle drop/lift |
 
@@ -50,6 +50,24 @@ The drums and the ambience use PICO-8's PCM channel (`serial(0x808)`), which fak
 - Each song is a single cartdata file, `swingbox_cancionN.p8d.txt`, in PICO-8's `cdata` folder. Back it up or share it to move the whole song.
 - On the **song** page you set BPM, swing, key, scale, arrangement length, count-in click and play mode (loop / song). The arrangement has 16 blocks. Each block picks a beats pattern (top letter) and a keys pattern (bottom letter) and repeats ×1–×8. A part can be muted per block, for breaks.
 
+## Groove: Dilla-style timing
+
+J Dilla's "drunk" feel is not more swing or more randomness: each drum voice sits on its own grid at the same time (straight hats, rushed snare, dragging kick) and the offsets repeat identically every bar. The **groove** page of swing_beats models that:
+
+| Control | What it does |
+|---|---|
+| swg / base | Song swing 50–75%. Base 16 delays the odd 16ths (MPC); base 8 delays the weak 8th (16ths in between follow). Tuplet values: 57% ≈ septuplet, 60% quintuplet, 62% ≈ golden, 66% triplet |
+| sw (per track) | Own swing for each voice; `--` follows the song swing |
+| nudge | Shifts a whole track −64…+60 ms (early snares fit: events are scheduled 100 ms ahead) |
+| fl | Flam: a ghost hit 10/20/30 ms before every mid or hard hit |
+| grv | Groove template: per-step offsets in 1/48 of a step, so they scale with tempo. **Tap O** to apply its preset (track swings, flam, humanize, drift; nudges reset to 0) |
+| drift | Swing grows 0–3% per bar on swung tracks and snaps back every 4 bars |
+| hum | 0–15 ms, mode **rand** (white noise), **smth** (correlated AR(1), closer to how drummers drift) or **lock** (the same micro-offsets every bar) |
+
+Templates: none, get dis (backbeat −4/48, two late hats), septet (backbeat −1/64), 5/192 (snare 5/192 of a bar early, ≈ 69 ms at 90 BPM), quint (hats +0.4 step), golden, rush (snare −1/4 step), drunk. They are starting points to listen to, not measured Dilla values. The research behind them is summarized in the project notes.
+
+Keys and noise follow the song swing; the noise duck follows the kick track's timing.
+
 ## Recording through line out
 
 1. Plug the headphone out into your interface or recorder.
@@ -61,7 +79,7 @@ The drums and the ambience use PICO-8's PCM channel (`serial(0x808)`), which fak
 <details><summary>swing_beats</summary>
 
 - **pattern**: kik / snr / rim / hat / opn, 16 steps, velocities ghost / mid / hard. O+←→ rotates the row.
-- **groove**: swing 50–75%, humanize 0–15 ms, per-track nudge ±40 ms and level.
+- **groove** (Dilla-style microtiming, see below): song swing 50–75% on a 16th or 8th base, per-track swing, per-track nudge −64…+60 ms, flam, level, 8 groove templates/presets, phrase drift and three humanize modes.
 - **kit**: dusty / soft / tape kits (synthesized at load), tune, tone (low-pass), drive, room, crush. Also an engine switch (pcm / chip) and a CPU meter.
 - The PCM engine schedules hits at sample level (5512.5 Hz): measured swing and nudge error is under 1 ms.
 </details>
@@ -69,7 +87,7 @@ The drums and the ambience use PICO-8's PCM channel (`serial(0x808)`), which fak
 <details><summary>swing_keys</summary>
 
 - Rows **bas / led / chd**. Bass and lead hold scale degrees 1–14 (two octaves). Chords take degrees 1–7 and are built as diatonic 7th chords with a shell voicing (3rd + 7th), and the chord name is shown (Am7, D7…). **x** cuts the note.
-- **sound** page, per instrument: wave, octave, level, reverb, filter, detune, wobble (vibrato), nudge. The lead also has a dotted-eighth echo (0–2 repeats) and chords have a slow or fast attack.
+- **sound** page, per instrument: wave, octave, level, reverb, filter, detune, wobble (vibrato), nudge (−64…+60 ms, e.g. a bass laid back behind the kick). The lead also has a dotted-eighth echo (0–2 repeats) and chords have a slow or fast attack.
 </details>
 
 <details><summary>swing_noise</summary>
@@ -88,6 +106,7 @@ The drums and the ambience use PICO-8's PCM channel (`serial(0x808)`), which fak
 python3 build.py          # src/*.lua -> carts/{es,en}/*.p8, prints token counts
 bash tests/setup.sh       # builds fake-08 (libretro) + a headless frontend
 python3 tests/test_timing.py   # swing & nudge accuracy from rendered audio
+python3 tests/test_groove.py   # per-track swing, templates, flam, drift, humanize modes
 python3 tests/test_sync.py     # records the 3 stems and checks they line up
 python3 tests/screens.py       # screenshots of every page -> docs/
 ```

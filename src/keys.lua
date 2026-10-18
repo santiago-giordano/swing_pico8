@@ -128,7 +128,7 @@ function trig(i,p,s)
  for r=0,2 do
   local v=fg(128+p*24,s*3+r,4)
   if v>0 then
-   push(i+lead+(sgd(228+r*5)+(rnd(2)-1)*gd(117))*5.5125,{r=r,v=v})
+   push(i+lead+max(-lead,swo(gd(3),s)+sgd(228+r*5)*5.5125+hum(5+r,s)),{r=r,v=v})
   end
  end
 end
@@ -238,7 +238,7 @@ function soundpage()
    {v=function() return kp(r,1) end,a=function(d) clampset(225+r*5,d,0,3) end},
    {v=function() return kp(r,2) end,a=function(d) clampset(226+r*5,d,1,7) end},
    fxi(0,2,2),fxi(2,2,2),fxi(4,2,2),fxi(6,1,1),
-   {v=function() return sgd(228+r*5) end,a=function(d) clampset(228+r*5,d*2,24,104) end}}
+   {v=function() return sgd(228+r*5) end,a=function(d) clampset(228+r*5,d*2,0,124) end}}
   if (r==1) add(def,{v=function() return gd(239)&3 end,a=function(d) local f=gd(239) sd(239,f&0xfc|mid(0,2,(f&3)+d)) end})
   if (r==2) add(def,{v=function() return gd(239)&4>0 and tx("len","slow") or tx("rap","fast") end,a=function() sd(239,gd(239)^^4) end})
   for j,t in pairs(def) do

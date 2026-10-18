@@ -43,9 +43,14 @@ def beats_pattern(b, p, rows):
         for s, ch in enumerate(r):
             fset(b, 32 + p * 20, t * 16 + s, 2, int(ch))
 
-def beats_params(b, nudge=(0,)*5, hum=0, levels=(7,)*5, kit=0, tone=7, drive=0, room=0, crush=0, tune=0):
+def beats_params(b, nudge=(0,)*5, hum=0, levels=(7,)*5, kit=0, tone=7, drive=0, room=0, crush=0, tune=0,
+                 swing=(0,)*5, flam=(0,)*5, groove=0, drift=0, hummode=0, base8=False):
+    """swing: per-track %, 0 = song swing. flam: 0-3 (x10 ms). groove: template 0-7.
+    hummode: 0 free, 1 drift (AR1), 2 lock."""
     for t in range(5):
         b[112 + t] = 64 + nudge[t]
-        b[118 + t] = levels[t]
-    b[117] = hum; b[123] = kit; b[124] = tone; b[125] = drive; b[126] = room
+        b[118 + t] = levels[t] | ((swing[t] - 49) << 3 if swing[t] else 0)
+        fset(b, 11, t, 2, flam[t])
+    b[9] = groove; b[10] = drift; b[13] = int(base8)
+    b[117] = hum | hummode << 4; b[123] = kit; b[124] = tone; b[125] = drive; b[126] = room
     b[127] = 128 | crush | (tune + 3) << 2
