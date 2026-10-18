@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Assemble swing_*.p8 carts from src/ and report PICO-8 token counts."""
-import re, sys, os
+import re, sys, os, zlib
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 CARTS = {
@@ -62,6 +62,7 @@ def build(name, parts, lang="es"):
 
 if __name__ == "__main__":
     which = sys.argv[1:] or list(CARTS)
+    bad = False
     for w in which:
         parts = CARTS[w]
         if not all(os.path.exists(os.path.join(ROOT, "src", p)) for p in parts):
@@ -69,5 +70,9 @@ if __name__ == "__main__":
             continue
         for lang in LANGS:
             out, toks, chars = build(w, parts, lang)
-            flag = "OK" if toks <= 8192 else "OVER"
-            print(f"carts/{lang}/{w}.p8: {toks} tokens ({flag}), {chars} chars")
+            code = open(out).read().split("__lua__\n", 1)[1]
+            comp = len(zlib.compress(code.encode(), 9))  # proxy for PICO-8's 15616-byte limit
+            ok = toks <= 8192 and chars <= 65535 and comp <= 14000
+            bad = bad or not ok
+            print(f"carts/{lang}/{w}.p8: {toks} tokens, {chars} chars, ~{comp} bytes compressed ({'OK' if ok else 'OVER'})")
+    sys.exit(1 if bad else 0)

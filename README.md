@@ -1,5 +1,7 @@
 # swing_pico8
 
+[![ci](https://github.com/santiago-giordano/swing_pico8/actions/workflows/ci.yml/badge.svg)](https://github.com/santiago-giordano/swing_pico8/actions/workflows/ci.yml) [![release](https://img.shields.io/github/v/release/santiago-giordano/swing_pico8)](https://github.com/santiago-giordano/swing_pico8/releases/latest) [![license: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 *[Leer en español](README.es.md)*
 
 Three PICO-8 carts for making and recording **lofi beats in stems**, built for handhelds (tested layout: Anbernic RG CubeXX, 1:1 screen):
@@ -14,9 +16,26 @@ All three share one **song file**: tempo, swing, key, scale and the arrangement.
 
 ![the three carts](docs/swing_lofi.png)
 
+## Listen
+
+<img src="docs/demo.gif" width="256" align="right" alt="swing_beats playing">
+
+Rendered with the test rig (same PCM path as official PICO-8), default song at 82 BPM:
+
+- [Full mix, "drunk" groove](docs/audio/5_mezcla_borracho.mp3): beats + keys + noise stems summed
+- Drums only, same pattern, four grooves:
+  [MPC 62%](docs/audio/1_mpc62_sin_groove.mp3) ·
+  [septuplet](docs/audio/2_septillo.mp3) ·
+  [snare 5/192 early](docs/audio/3_snare_5-192.mp3) ·
+  [drunk](docs/audio/4_borracho.mp3)
+
+The differences between grooves are 20–70 ms: use headphones and play them back to back.
+
+<br clear="right">
+
 ## Install
 
-Copy one language folder to your PICO-8 carts folder (`roms/pico8` on Knulli):
+Download the zip from the [latest release](https://github.com/santiago-giordano/swing_pico8/releases/latest) (or clone the repo). Copy one language folder to your PICO-8 carts folder (`roms/pico8` on Knulli):
 
 - `carts/en/`: starts in English
 - `carts/es/`: starts in Spanish
@@ -103,14 +122,17 @@ Keys and noise follow the song swing; the noise duck follows the kick track's ti
 ## Development
 
 ```
-python3 build.py          # src/*.lua -> carts/{es,en}/*.p8, prints token counts
+python3 build.py          # src/*.lua -> carts/{es,en}/*.p8; fails if a cart exceeds PICO-8 limits
 bash tests/setup.sh       # builds fake-08 (libretro) + a headless frontend
+bash tests/run_all.sh     # build + every test below
 python3 tests/test_timing.py   # swing & nudge accuracy from rendered audio
 python3 tests/test_groove.py   # per-track swing, templates, flam, drift, humanize modes
 python3 tests/test_sync.py     # records the 3 stems and checks they line up
+python3 tests/test_live_edit.py   # editing kit/tune while playing must not crash
 python3 tests/screens.py       # screenshots of every page -> docs/
 ```
 
+- CI (GitHub Actions) runs the build check and all tests on every push. Pushing a `v*` tag publishes a release with the carts zip and the matching CHANGELOG entry.
 - `src/core.lua` is shared by the three carts. It has the song storage, sequencer, audio clock, input, pages and lofi palette. Each cart adds its own engine on top.
 - The tests run the carts in [fake-08](https://github.com/jtothebell/fake-08) with a **test-only patch** that adds the PCM channel (`tests/fake08-test.patch`). This lets the harness render the official-PICO-8 sound path to WAV and measure it.
 - Song file layout, 256 bytes: `0` magic, `2` bpm, `3` swing, `4` key, `5` scale, `6` seed, `7` length, `8` click, `16–31` arrangement, `32–127` beats, `128–239` keys, `240–255` noise.

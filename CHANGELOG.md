@@ -1,0 +1,45 @@
+# Changelog
+
+Format based on [Keep a Changelog](https://keepachangelog.com/). Versions follow [SemVer](https://semver.org/).
+
+## [2.1.0] - 2026-10-18
+
+### Fixed
+- swing_beats crashed ("attempt to perform arithmetic on field '?'") when the kit or tune was changed while the pattern played: the new drum buffers could be shorter than a voice still sounding. Voices are now cut on re-synthesis. Found on the first run on an Anbernic RG CubeXX with official PICO-8.
+- swing_keys could land notes 2–3 frames (33–50 ms) late: its clock followed the PCM buffer, which drains in blocks. The clock now advances one frame per frame and is nudged gently toward the PCM consumption, so notes stay within ±1 frame without drifting.
+
+### Changed
+- tone, drive and room are applied live and no longer re-synthesize the kit (no CPU spike, no click).
+- `build.py` fails when a cart exceeds the token, character or (estimated) compressed-size limits.
+
+### Added
+- Rendered audio samples and a demo GIF in `docs/`.
+- GitHub Actions: CI on every push, release with the carts zip on every `v*` tag.
+- `tests/test_live_edit.py` and `tests/run_all.sh`.
+
+## [2.0.0] - 2026-10-18
+
+### Added
+- Dilla-style groove page in swing_beats:
+  - per-track swing (or follow the song swing) and a 16th / 8th swing base;
+  - 8 groove templates with per-step offsets in 1/48 of a step (they scale with tempo); tapping O applies the template's preset;
+  - flam (ghost hit 10/20/30 ms before mid and hard hits);
+  - phrase drift: swing grows 0–3% per bar and resets every 4 bars;
+  - humanize modes: random, smooth (correlated AR(1)) and lock (same micro-offsets every bar).
+- `tests/test_groove.py`.
+
+### Changed
+- The sequencer now runs on a straight grid and every event carries its own swing offset (no accumulated swung durations).
+- Events are scheduled 100 ms ahead (was 42 ms), so hits can be pulled early.
+- Nudge range is now −64…+60 ms in beats and keys (was ±40).
+- swing_noise ducking follows the kick track's actual timing.
+
+Songs made with 1.x open unchanged: the new fields default to "off".
+
+## [1.0.0] - 2026-10-18
+
+First public version: swing_beats, swing_keys and swing_noise sharing a song file, MPC-style swing, per-track nudge, humanize, record mode with click count-in, Spanish/English UI and a headless test rig on patched fake-08.
+
+[2.1.0]: https://github.com/santiago-giordano/swing_pico8/releases/tag/v2.1.0
+[2.0.0]: https://github.com/santiago-giordano/swing_pico8/compare/d493b23...78a1487
+[1.0.0]: https://github.com/santiago-giordano/swing_pico8/commit/d493b23

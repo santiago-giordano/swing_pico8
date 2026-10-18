@@ -1,5 +1,7 @@
 # swing_pico8
 
+[![ci](https://github.com/santiago-giordano/swing_pico8/actions/workflows/ci.yml/badge.svg)](https://github.com/santiago-giordano/swing_pico8/actions/workflows/ci.yml) [![release](https://img.shields.io/github/v/release/santiago-giordano/swing_pico8)](https://github.com/santiago-giordano/swing_pico8/releases/latest) [![license: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 *[Read in English](README.md)*
 
 Tres cartuchos de PICO-8 para armar y grabar **lofi por stems**, pensados para consolas de mano (el diseño está probado para la Anbernic RG CubeXX, de pantalla cuadrada):
@@ -14,9 +16,26 @@ Los tres comparten un **archivo de canción** con tempo, swing, tono, escala y a
 
 ![los tres cartuchos](docs/swing_lofi.png)
 
+## Escuchá
+
+<img src="docs/demo.gif" width="256" align="right" alt="swing_beats sonando">
+
+Renderizado con el banco de pruebas (el mismo camino PCM del PICO-8 oficial), canción por defecto a 82 BPM:
+
+- [Mezcla completa, groove "borracho"](docs/audio/5_mezcla_borracho.mp3): los stems de beats, keys y noise sumados
+- Batería sola, mismo patrón, cuatro grooves:
+  [MPC 62 %](docs/audio/1_mpc62_sin_groove.mp3) ·
+  [septillo](docs/audio/2_septillo.mp3) ·
+  [snare 5/192 adelantada](docs/audio/3_snare_5-192.mp3) ·
+  [borracho](docs/audio/4_borracho.mp3)
+
+Las diferencias entre grooves son de 20 a 70 ms: escuchalos seguidos y con auriculares.
+
+<br clear="right">
+
 ## Instalación
 
-Copiá una de las carpetas de idioma a la carpeta de cartuchos de PICO-8 (`roms/pico8` en Knulli):
+Bajá el zip del [último release](https://github.com/santiago-giordano/swing_pico8/releases/latest) (o cloná el repo). Copiá una de las carpetas de idioma a la carpeta de cartuchos de PICO-8 (`roms/pico8` en Knulli):
 
 - `carts/es/`: arranca en español
 - `carts/en/`: arranca en inglés
@@ -77,14 +96,17 @@ Keys y noise siguen el swing de la canción; el ducking de noise sigue el timing
 ## Desarrollo
 
 ```
-python3 build.py               # src/*.lua -> carts/{es,en}/*.p8 (y cuenta tokens)
+python3 build.py               # src/*.lua -> carts/{es,en}/*.p8; falla si un cartucho pasa los límites de PICO-8
 bash tests/setup.sh            # compila fake-08 (libretro) + un frontend sin pantalla
+bash tests/run_all.sh          # build + todos los tests de abajo
 python3 tests/test_timing.py   # precisión de swing y nudge midiendo el audio
 python3 tests/test_groove.py   # swing por pista, templates, flam, deriva, modos de humanización
 python3 tests/test_sync.py     # graba los 3 stems y verifica que queden alineados
+python3 tests/test_live_edit.py   # editar kit o afinación sonando no debe colgarse
 python3 tests/screens.py       # capturas de todas las páginas -> docs/
 ```
 
+- La CI (GitHub Actions) corre el chequeo de build y todos los tests en cada push. Al subir un tag `v*` se publica un release con el zip de cartuchos y la entrada correspondiente del CHANGELOG.
 - `src/core.lua` es común a los tres cartuchos: canción, secuenciador, reloj de audio, input, páginas y paleta.
 - Los tests corren los cartuchos en fake-08 con un **parche solo para pruebas** que agrega el canal PCM (`tests/fake08-test.patch`). Así se puede grabar a WAV y medir el sonido que daría el PICO-8 oficial.
 - La CPU en el PICO-8 oficial está estimada, no medida en la consola: entre 15 y 26% para beats y entre 22 y 46% para noise con todo al máximo. Para chequearla en tu equipo, las páginas kit y fx muestran la CPU.

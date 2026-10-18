@@ -1,0 +1,33 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow numpy
+      - name: Carts in the repo match src/
+        run: |
+          python3 build.py
+          git diff --exit-code -- carts
+      - uses: actions/cache@v4
+        with:
+          path: tests/.work/fake-08
+          key: fake08-${{ hashFiles('tests/setup.sh', 'tests/fake08-test.patch') }}
+      - name: Build test rig (fake-08 + PCM test patch)
+        run: bash tests/setup.sh
+      - name: Tests
+        run: |
+          python3 tests/test_timing.py
+          python3 tests/test_groove.py
+          python3 tests/test_sync.py
+          python3 tests/test_live_edit.py
+          python3 tests/screens.py

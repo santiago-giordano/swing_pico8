@@ -1,0 +1,27 @@
+name: release
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build carts
+        run: python3 build.py
+      - name: Package
+        run: |
+          mkdir -p dist/swing_pico8
+          cp -r carts/es carts/en LICENSE README.md README.es.md dist/swing_pico8/
+          (cd dist && zip -qr "swing_pico8_${GITHUB_REF_NAME}.zip" swing_pico8)
+      - name: Release notes from CHANGELOG.md
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          awk -v v="$v" '/^## /{p = index($0, "[" v "]") > 0; next} p' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "swing_pico8 $GITHUB_REF_NAME" > notes.md
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" "dist/swing_pico8_${GITHUB_REF_NAME}.zip" --title "swing_pico8 $GITHUB_REF_NAME" --notes-file notes.md

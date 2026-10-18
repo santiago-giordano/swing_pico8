@@ -37,6 +37,7 @@ def test_sync():
     b = sf.read(path)
     assert [b[127] >> 7, b[239] >> 7, b[255] >> 7] == [1, 1, 1]
     b[7], b[16], b[17] = 2, 0, 1 | 4  # 2 bars: A then B
+    b[6] = 39  # fixed seed; with 39 the old keys clock jumped 2 frames (+33 ms)
     sf.write(path, b)
     bar = 16 * 15 / b[2]
     expected = [bar / 4, bar / 2, bar * 3 / 4]

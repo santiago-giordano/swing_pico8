@@ -637,7 +637,8 @@ function fire(e)
  else play(e.r,e.v) end
 end
 
-function onstart() end
+kd=0
+function onstart() kd=0 end
 function onstop()
  for k=0,3 do sfx(-1,k) end
  lit={}
@@ -810,11 +811,19 @@ function _update60()
   pickupdate()
   return
  end
+ -- reloj: un cuadro por frame,
+ -- corregido de a poco por lo que
+ -- consumio el pcm (llega en
+ -- bloques; seguirlo crudo mete
+ -- saltos de 2-3 frames)
  local n=91.875
  if pcmok then
-  n=pcmneed(768)
-  memset(0x4300,128,n)
-  if (n>0) serial(0x808,0x4300,n)
+  local q=pcmneed(768)
+  memset(0x4300,128,q)
+  if (q>0) serial(0x808,0x4300,q)
+  kd+=q
+  n=max(0,n+(kd-n)*.1)
+  kd-=n
  end
  if (playing) advance(n)
  inp()
