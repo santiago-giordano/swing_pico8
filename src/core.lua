@@ -376,17 +376,36 @@ end
 -- a(djust fn dx,dy) k(acc fn)
 function ipage(nm,its,dr,hp)
  local p={n=nm,its=its,ic=1,h=hp}
+ -- navegacion por filas: izq/der al
+ -- vecino de la misma fila; arriba/
+ -- abajo a la fila contigua, al item
+ -- mas cerca de la columna que traias
  p.mv=function(dx,dy)
-  local c,b,bs=its[p.ic],p.ic,999
-  for i,t in pairs(its) do
-   local ex,ey=t.x-c.x,t.y-c.y
-   local pr=ex*dx+ey*dy
-   if pr>0 then
-    local s=pr+2*abs(ex*dy+ey*dx)
-    if (s<bs) b,bs=i,s
+  local c=its[p.ic]
+  local function mx(t) return t.x+(t.w or 13)/2 end
+  p.cx=p.cx or mx(c)
+  local b,bs=nil,999
+  if dx~=0 then
+   for i,t in pairs(its) do
+    local d=abs(t.x-c.x)
+    if (t.y==c.y and (t.x-c.x)*dx>0 and d<bs) b,bs=i,d
+   end
+   if b then p.ic=b p.cx=mx(its[b]) end
+  else
+   local ty
+   for i,t in pairs(its) do
+    local d=(t.y-c.y)*dy
+    if (d>0 and d<bs) ty,bs=t.y,d
+   end
+   if ty then
+    bs=999
+    for i,t in pairs(its) do
+     local d=abs(mx(t)-p.cx)
+     if (t.y==ty and d<bs) b,bs=i,d
+    end
+    p.ic=b
    end
   end
-  p.ic=b
  end
  p.adj=function(dx,dy)
   local t=its[p.ic]
@@ -477,7 +496,7 @@ function songpage()
   for j=15,i+2,-1 do sd(16+j,gd(15+j)) end
   sd(17+i,gd(16+i))
   if (i<gd(7)) sd(7,min(16,gd(7)+1))
-  p.ic+=1
+  p.ic+=1 p.cx=nil
   say(tx("bloque copiado","block copied"))
  end
  return p

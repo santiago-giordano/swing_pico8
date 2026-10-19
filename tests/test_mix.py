@@ -362,6 +362,26 @@ def test_boom_kit():
     print("peak / mid rms (dusty, boom):", {k: tuple(round(v, 3) for v in t) for k, t in pk.items()})
     assert pk[3][0] < 0.99 and pk[3][1] >= pk[0][1] * 0.9
 
+
+def test_navigation():
+    """song page cursor moves by rows: down/right/up/down land where a person expects"""
+    b = sf.blank(bpm=90, swing=50, length=4)
+    b[127] = 128 | 3 << 2
+    out = os.path.join(OUT, "nav")
+    shutil.rmtree(out, ignore_errors=True)
+    path = os.path.join(out, "sys/cdata/swingbox_cancion1.p8d.txt")
+    sf.write(path, b)
+    script = ("w 20;t o;w 20;hold x r;hold x r;hold x r;"
+              "t d;t r;hold o r;"          # bpm -> down -> len, right -> click, O+right: click 1 -> 2
+              "t r;t d;hold o u;"          # mode, down -> poly, O+up: poly grid 12 -> 10
+              "t d;t o;w 60")              # down -> block under poly (column kept), tap O
+    R.run(R.cart("swing_beats"), out, script)
+    c = sf.read(path)
+    print("click", c[8], "poly grid code", c[1] >> 6, "block 6 beats letter", c[16 + 6] & 3)
+    assert c[8] == 2
+    assert c[1] >> 6 == 1
+    assert c[16 + 6] & 3 == 1
+
 if __name__ == "__main__":
     test_bass_speaker()
     test_fill()
@@ -370,6 +390,7 @@ if __name__ == "__main__":
     test_trim()
     test_poly()
     test_boom_kit()
+    test_navigation()
     test_metronome()
     test_keys_align()
     test_mute()

@@ -2,6 +2,12 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/). Versions follow [SemVer](https://semver.org/).
 
+## [2.8.2] - 2026-10-19
+
+### Changed
+- Cursor navigation on every item page (song, groove, kit, sound, scene, fx, mix) now works by rows: left/right moves to the neighbour in the same row, up/down to the adjacent row, landing on the item closest to the column you were in. Before, it picked the "nearest item in that direction" with a distance formula that jumped unpredictably between rows with different spacing.
+- Test: `test_navigation`.
+
 ## [2.8.1] - 2026-10-19
 
 ### Added
