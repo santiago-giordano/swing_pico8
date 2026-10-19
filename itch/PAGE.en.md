@@ -10,10 +10,12 @@ Lofi beat-making with Dilla swing for PICO-8: drums, keys and noise that record 
 
 Swing PICO-8 is a small lofi studio in four PICO-8 carts:
 
-- **Swing Beats**: drums. 5 tracks × 16 steps, 3 velocities per step, 3 kits (dust, soft, tape).
-- **Swing Keys**: bass, lead and chords written as scale degrees, with diatonic 7th chords, reverb, filter, detune, tape wobble and a tempo-synced echo.
+- **Swing Beats**: drums. 5 tracks × 16 steps, 3 velocities per step, 4 kits (dust, soft, tape, boom), per-track start trim, auto fills and one polyrhythmic track (triplets, quintuplets or septuplets against the straight grid).
+- **Swing Keys**: bass, lead and chords written as scale degrees, with diatonic 7th chords, reverb, filter, detune, tape wobble and a tempo-synced echo. It can play the song's drums underneath while you write.
 - **Swing Noise**: vinyl, tape, rain, fire, sea and night textures, with kick-synced ducking, fades and a vinyl needle drop.
 - **Swing Mix**: plays the three together so you hear the whole song, with level, mute and solo per stem.
+
+On a handheld speaker the kick and the bass lose their lowest octave, so both carts have a **speaker** option that keeps them audible; switch it off for headphones or line out.
 
 All four share the same song (8 slots), so tempo, swing, key, scale and arrangement stay in sync. Each cart records its own stem with a count-in click: line-out into your interface, align the three takes on the first click, done.
 
@@ -25,6 +27,7 @@ Dilla time comes from programmed timing: each drum voice has its own offsets, an
 - **Groove templates** with per-step offsets (septuplet, 5/192 snare, golden ratio, "drunk"…)
 - Per-track **nudge** from −64 to +60 ms, **flam**, and **phrase drift**
 - **Humanize** in three modes: random, smooth (correlated, 1/f-like) or locked (same offsets every bar)
+- Per-track **start trim** and a **polyrhythmic track** (12, 10, 14 or 8 cells per bar)
 - Sample-accurate timing with the official PICO-8 (PCM output)
 
 Takes come out identical every time, so stems always line up.

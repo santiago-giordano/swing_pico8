@@ -10,10 +10,12 @@ Beats lofi con swing Dilla para PICO-8: batería, teclas y ruido que se graban e
 
 Swing PICO-8 es un pequeño estudio lofi en cuatro cartuchos de PICO-8:
 
-- **Swing Beats**: batería. 5 pistas × 16 pasos, 3 velocidades por paso, 3 kits (polvo, suave, cinta).
-- **Swing Keys**: bajo, lead y acordes escritos por grados de la escala, con cuatriadas diatónicas, reverb, filtro, detune, wobble de cinta y eco sincronizado al tempo.
+- **Swing Beats**: batería. 5 pistas × 16 pasos, 3 velocidades por paso, 4 kits (polvo, suave, cinta, boom), recorte de inicio por pista, rellenos automáticos y una pista polirrítmica (tresillos, quintillos o septillos contra la grilla recta).
+- **Swing Keys**: bajo, lead y acordes escritos por grados de la escala, con cuatriadas diatónicas, reverb, filtro, detune, wobble de cinta y eco sincronizado al tempo. Puede hacer sonar la batería de la canción debajo mientras escribís.
 - **Swing Noise**: texturas de vinilo, cinta, lluvia, fuego, mar y noche, con ducking sincronizado al bombo, fades y aguja de vinilo.
 - **Swing Mix**: reproduce los tres juntos para escuchar la canción completa, con nivel, mute y solo por stem.
+
+En el parlante de una consola portátil el bombo y el bajo pierden su octava más grave, así que los dos cartuchos tienen una opción **parlante** que los mantiene audibles; se apaga para auriculares o salida de línea.
 
 Los cuatro comparten la misma canción (8 espacios), así que tempo, swing, tono, escala y arreglo quedan sincronizados. Cada cartucho graba su propio stem con un click de conteo: salida de línea a tu interfaz, alineás las tres tomas por el primer click y listo.
 
@@ -25,6 +27,7 @@ El tiempo Dilla sale de un timing programado: cada voz de la batería tiene sus 
 - **Groove templates** con desfasajes por paso (septillo, snare 5/192, áureo, "borracho"…)
 - **Nudge** por pista de −64 a +60 ms, **flam** y **deriva** de frase
 - **Humanización** en tres modos: azar, suave (correlacionada, tipo 1/f) o fija (los mismos desfasajes en cada compás)
+- **Recorte de inicio** por pista y una **pista polirrítmica** (12, 10, 14 u 8 celdas por compás)
 - Timing con precisión de muestra en el PICO-8 oficial (salida PCM)
 
 Las tomas salen idénticas cada vez, así que los stems siempre coinciden.

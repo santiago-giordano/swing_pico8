@@ -6,7 +6,7 @@ Everything to publish swing_pico8 on itch.io with your own account.
 |---|---|
 | `cover.png` | Cover image (630×500, itch's recommended size) |
 | `screenshots/` | Upload in this order: `swing_beats.png`, `swing_keys.png`, `swing_noise.png`, `swing_mix.png`, `all_pages.png` |
-| `swing_pico8_v2.5.0.zip` | The download (same as the GitHub release) |
+| `swing_pico8_v2.8.0.zip` | The download (same as the GitHub release) |
 | `PAGE.en.md`, `PAGE.es.md` | Tagline, description and metadata to paste |
 
 ## Steps
