@@ -35,7 +35,7 @@ Hecho y probado en la **Anbernic RG CubeXX** con Knulli. La batería consume cer
 
 ### Qué necesitás
 
-- **PICO-8** oficial (en lexaloffle.com). Es lo recomendado: swing_beats y swing_noise usan salida PCM, que fake-08 no implementa (swing_keys anda en cualquiera; swing_beats cae a un modo "chip" más simple).
+- **PICO-8** oficial (en lexaloffle.com). Es lo recomendado: swing_beats, swing_noise y swing_mix usan salida PCM, que fake-08 no implementa (swing_keys anda en cualquiera; swing_beats cae a un modo "chip" más simple).
 - Opcional: cable de salida de línea e interfaz de audio para grabar los stems.
 
 ### Qué trae la descarga

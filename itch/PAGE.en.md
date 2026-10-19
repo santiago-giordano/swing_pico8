@@ -35,7 +35,7 @@ Built and tested for the **Anbernic RG CubeXX** running Knulli. Drums sit at abo
 
 ### What you need
 
-- **PICO-8** (official, from lexaloffle.com). Recommended: swing_beats and swing_noise use PCM output, which fake-08 doesn't implement (swing_keys works anywhere; swing_beats falls back to a simpler "chip" mode).
+- **PICO-8** (official, from lexaloffle.com). Recommended: swing_beats, swing_noise and swing_mix use PCM output, which fake-08 doesn't implement (swing_keys works anywhere; swing_beats falls back to a simpler "chip" mode).
 - Optional: line-out cable and an audio interface to record the stems.
 
 ### What's in the download
