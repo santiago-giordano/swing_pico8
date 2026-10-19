@@ -107,7 +107,7 @@ Keys y noise siguen el swing de la canción; el ducking de noise sigue el timing
 
 ## Escuchar todo junto: swing_mix
 
-PICO-8 corre un cartucho a la vez, así que `swing_mix` lleva adentro los tres motores: batería y ruido por PCM, teclas por los canales de chip. Abrí la misma canción, tocá X y reproduce el arreglo (o el patrón A–D en modo loop).
+Ningún cartucho guarda audio: cada uno guarda su parte de la partitura (pasos, notas, kit, groove, niveles) en el archivo de canción, y el sonido se genera al dar play. `swing_mix` lee esas tres partes de la misma canción y las hace sonar juntas. Como PICO-8 corre un cartucho a la vez, lleva adentro los tres motores: batería y ruido por PCM, teclas por los canales de chip. Abrí la misma canción, tocá X y reproduce el arreglo (o el patrón A–D en modo loop).
 
 - Página **mezcla**: por stem, un fader (O+↑↓), un medidor y **M**ute / **S**olo (tocar O). Los niveles se guardan en la canción. Solo afectan a swing_mix; los stems que grabás desde cada cartucho no cambian.
 - Página **canción**: tempo, swing, tono y modo. El arreglo acá es de solo lectura; se edita en beats o keys.

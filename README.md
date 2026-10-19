@@ -107,7 +107,7 @@ Keys and noise follow the song swing; the noise duck follows the kick track's ti
 
 ## Hearing everything together: swing_mix
 
-PICO-8 runs one cart at a time, so `swing_mix` carries the three engines inside: drums and noise over PCM, keys on the chip channels. Open the same song, press X and it plays the arrangement (or loops pattern A–D in loop mode).
+No cart stores audio: each one saves its part of the score (steps, notes, kit, groove, levels) in the song file, and the sound is generated on play. `swing_mix` reads those three parts from the same song and plays them together. PICO-8 runs one cart at a time, so it carries the three engines inside: drums and noise over PCM, keys on the chip channels. Open the same song, press X and it plays the arrangement (or loops pattern A–D in loop mode).
 
 - **mix** page: a fader (O+↑↓), a meter, and **M**ute / **S**olo (tap O) per stem. Levels live in the song file, so they're kept for next time. They only affect swing_mix; the stems you record from each cart stay as they are.
 - **song** page: tempo, swing, key and mode. The arrangement is read-only here; edit it in beats or keys.
