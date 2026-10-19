@@ -2,6 +2,14 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/). Versions follow [SemVer](https://semver.org/).
 
+## [2.8.1] - 2026-10-19
+
+### Added
+- Diagnostic line on every song page: `pcm ok|no`, the PCM buffer level (`stat(108)`) and, in swing_keys, the clock ratio against real frames (`clk 100` is normal).
+
+### Fixed
+- swing_keys: if the PCM-based clock drifts from real frames (below 60 % or above 140 % over one second of playing, as can happen with an odd audio buffer or Bluetooth), keys falls back to the per-frame clock instead of stalling.
+
 ## [2.8.0] - 2026-10-19
 
 ### Added

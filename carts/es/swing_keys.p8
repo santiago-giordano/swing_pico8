@@ -467,7 +467,11 @@ function songpage()
    v=function() return gd(239)&64>0 and tx("si","on") or "no" end,
    a=function() sd(239,gd(239)^^64) end})
  end
- local p=ipage(tx("cancion","song"),its,nil,ro and tx("arreglo: se edita en beats/keys","arrangement: edit in beats/keys") or tx("o:patron o+^v:x2 x+o:copia","o:pattern o+^v:x2 x+o:copy"))
+ -- diagnostico: estado del pcm
+ local function dg()
+  print("pcm "..(pcmok and "ok" or "no").." "..stat(108)..(clkr and " clk "..flr(clkr*100) or ""),2,113,5)
+ end
+ local p=ipage(tx("cancion","song"),its,dg,ro and tx("arreglo: se edita en beats/keys","arrangement: edit in beats/keys") or tx("o:patron o+^v:x2 x+o:copia","o:pattern o+^v:x2 x+o:copy"))
  -- x+o sobre un bloque: inserta una copia
  -- a continuacion (corre el resto)
  p.dup=function()
@@ -845,8 +849,9 @@ function fire0(e)
 end
 
 kd=0
+ca,cn=0,0
 function onstart()
- kd=0
+ kd,ca,cn=0,0,0
  rmode=gd(239)&64>0 and pcmok and not rec
  if rmode then
   if (not vb[1]) for t=1,5 do rend(t) end
@@ -1051,6 +1056,17 @@ function _update60()
   kd+=q
   n=max(0,n+(kd-n)*.1)
   kd-=n
+  -- si el reloj del pcm se aleja de
+  -- los cuadros reales (buffer raro,
+  -- bluetooth) usa el reloj por cuadro
+  if playing then
+   ca+=n cn+=1
+   if cn>=60 then
+    clkr=ca/cn/91.875
+    if (clkr<.6 or clkr>1.4) pcmok=false
+    ca,cn=0,0
+   end
+  end
  end
  if (playing and not rmode) advance(n)
  inp()

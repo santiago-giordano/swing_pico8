@@ -208,8 +208,9 @@ function fire0(e)
 end
 
 kd=0
+ca,cn=0,0
 function onstart()
- kd=0
+ kd,ca,cn=0,0,0
  rmode=gd(239)&64>0 and pcmok and not rec
  if rmode then
   if (not vb[1]) for t=1,5 do rend(t) end
@@ -414,6 +415,17 @@ function _update60()
   kd+=q
   n=max(0,n+(kd-n)*.1)
   kd-=n
+  -- si el reloj del pcm se aleja de
+  -- los cuadros reales (buffer raro,
+  -- bluetooth) usa el reloj por cuadro
+  if playing then
+   ca+=n cn+=1
+   if cn>=60 then
+    clkr=ca/cn/91.875
+    if (clkr<.6 or clkr>1.4) pcmok=false
+    ca,cn=0,0
+   end
+  end
  end
  if (playing and not rmode) advance(n)
  inp()

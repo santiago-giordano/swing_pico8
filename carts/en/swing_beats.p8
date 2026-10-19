@@ -467,7 +467,11 @@ function songpage()
    v=function() return gd(239)&64>0 and tx("si","on") or "no" end,
    a=function() sd(239,gd(239)^^64) end})
  end
- local p=ipage(tx("cancion","song"),its,nil,ro and tx("arreglo: se edita en beats/keys","arrangement: edit in beats/keys") or tx("o:patron o+^v:x2 x+o:copia","o:pattern o+^v:x2 x+o:copy"))
+ -- diagnostico: estado del pcm
+ local function dg()
+  print("pcm "..(pcmok and "ok" or "no").." "..stat(108)..(clkr and " clk "..flr(clkr*100) or ""),2,113,5)
+ end
+ local p=ipage(tx("cancion","song"),its,dg,ro and tx("arreglo: se edita en beats/keys","arrangement: edit in beats/keys") or tx("o:patron o+^v:x2 x+o:copia","o:pattern o+^v:x2 x+o:copy"))
  -- x+o sobre un bloque: inserta una copia
  -- a continuacion (corre el resto)
  p.dup=function()
