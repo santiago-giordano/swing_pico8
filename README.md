@@ -63,7 +63,7 @@ Do it with the Knulli UI closed, or restart it afterwards: EmulationStation rewr
 
 The drums and the ambience use PICO-8's PCM channel (`serial(0x808)`), which fake-08 does not implement. On Knulli you can install the official PICO-8 from *Device Settings → Install Pico-8* and select **LEXALOFFLE: PICO8 OFFICIAL** as the emulator. See the [Knulli docs](https://knulli.org/systems/pico-8).
 
-## Controls (same in all three)
+## Controls (same in all four)
 
 | Action | Input |
 |---|---|
@@ -73,13 +73,14 @@ The drums and the ambience use PICO-8's PCM channel (`serial(0x808)`), which fak
 | Play / stop | tap **X** |
 | Change page | hold **X** + ← → |
 | Pattern A–D | hold **X** + ↑ ↓ |
+| Duplicate | hold **X** and tap **O**: on a pattern grid, copies the pattern into the next letter (only if that one is empty) and moves there; on a block of the song page, inserts a copy of the block after it |
 | Record song, copy/paste/clear pattern, change song | Pause menu |
 
 ## Songs
 
 - When a cart starts you pick a song (c1–c8). **Pick the same song in the three carts.**
 - Each song is a single cartdata file, `swingbox_cancionN.p8d.txt`, in PICO-8's `cdata` folder. Back it up or share it to move the whole song.
-- On the **song** page you set BPM, swing, key, scale, arrangement length, click and play mode (loop / song). **click**: *no*; *rec* = one bar of count-in only when you record (the default); *met* = the same count-in plus a metronome on every beat while you play, never in recordings. In swing_keys the metronome shares a channel with the chords, so it can cut the chord's 7th on the beat. The arrangement has 16 blocks. Each block picks a beats pattern (top letter) and a keys pattern (bottom letter) and repeats ×1–×8. A part can be muted per block, for breaks.
+- On the **song** page you set BPM, swing, key, scale, arrangement length, click and play mode (loop / song). **click**: *no*; *rec* = one bar of count-in only when you record (the default); *met* = the same count-in plus a metronome on every beat while you play, never in recordings. In swing_keys the metronome shares a channel with the chords, so it can cut the chord's 7th on the beat. The arrangement has 16 blocks. Each block picks a beats pattern (top letter) and a keys pattern (bottom letter) and repeats ×1–×8. A part can be muted per block, for breaks. **fill** (swing_beats and swing_mix): on the last bar of every block that repeats ×2 or more, add an open hat on step 16 (*hat*), a snare roll on steps 13–16 (*snare*) or both; it also shows up in the recordings, and blocks that play once never get one. **ref drm** (swing_keys): plays the song's drums under the keys while you play, so you can write against the groove. It switches off while recording, so the keys stem stays clean; keys notes are delayed by the PCM latency (~100 ms) to stay in time with the drums, which needs the official PICO-8 (it does nothing on fake-08).
 
 ## Groove: Dilla-style timing
 
@@ -160,7 +161,7 @@ python3 tests/screens.py       # screenshots of every page -> docs/
 - CI (GitHub Actions) runs the build check and all tests on every push. Pushing a `v*` tag publishes a release with the carts zip and the matching CHANGELOG entry.
 - `src/core.lua` is shared by the three carts. It has the song storage, sequencer, audio clock, input, pages and lofi palette. Each cart adds its own engine on top.
 - The tests run the carts in [fake-08](https://github.com/jtothebell/fake-08) with a **test-only patch** that adds the PCM channel (`tests/fake08-test.patch`). This lets the harness render the official-PICO-8 sound path to WAV and measure it.
-- Song file layout, 256 bytes: `0` magic, `2` bpm, `3` swing, `4` key, `5` scale, `6` seed, `7` length, `8` click (0 no, 1 count-in, 2 count-in + metronome), `16–31` arrangement, `32–127` beats, `128–239` keys (byte 239 bit 5: bass speaker, 0 = on), `240–255` noise.
+- Song file layout, 256 bytes: `0` magic, `2` bpm, `3` swing, `4` key, `5` scale, `6` seed, `7` length, `8` click (0 no, 1 count-in, 2 count-in + metronome), `16–31` arrangement, `32–127` beats, `128–239` keys (byte 239: bits 0–1 echo, 2 slow chords, 5 bass speaker (0 = on), 6 drum reference, 7 initialised), `1` bits 1–2 fill, `240–255` noise.
 
 ### Notes
 

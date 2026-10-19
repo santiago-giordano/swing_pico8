@@ -63,7 +63,7 @@ Hacelo con la interfaz de Knulli cerrada o reiniciala después: EmulationStation
 
 La batería y los ruidos usan el canal PCM de PICO-8 (`serial(0x808)`), que fake-08 no implementa. En Knulli el oficial se instala desde *Device Settings → Install Pico-8*; después elegí el emulador **LEXALOFFLE: PICO8 OFFICIAL**. Más detalles en la [documentación de Knulli](https://knulli.org/systems/pico-8).
 
-## Controles (iguales en los tres)
+## Controles (iguales en los cuatro)
 
 | Acción | Control |
 |---|---|
@@ -73,13 +73,14 @@ La batería y los ruidos usan el canal PCM de PICO-8 (`serial(0x808)`), que fake
 | Play / stop | tocar **X** |
 | Cambiar de página | mantener **X** + ← → |
 | Patrón A–D | mantener **X** + ↑ ↓ |
+| Duplicar | mantener **X** y tocar **O**: en la grilla de un patrón lo copia a la letra siguiente (solo si está vacía) y va ahí; sobre un bloque de la página canción inserta una copia a continuación |
 | Grabar, copiar/pegar/borrar patrón, cambiar canción | menú de pausa |
 
 ## Canciones
 
 - Al abrir un cartucho elegís la canción, de c1 a c8. **Elegí la misma en los tres.**
 - Cada canción es un archivo de cartdata, `swingbox_cancionN.p8d.txt`, en la carpeta `cdata` de PICO-8. Copiando ese archivo respaldás o compartís la canción entera.
-- En la página **canción** se configuran BPM, swing, tono, escala, largo del arreglo, click y modo (loop o cadena). **click**: *no*; *rec* = un compás de conteo solo al grabar (por defecto); *met* = el mismo conteo más un metrónomo en cada tiempo mientras tocás, nunca en la grabación. En swing_keys el metrónomo comparte canal con los acordes, así que puede cortar la 7.ª del acorde en cada tiempo. El arreglo tiene 16 bloques. Cada bloque elige un patrón de beats (letra de arriba) y uno de keys (letra de abajo), y se repite de ×1 a ×8. Cada parte se puede silenciar por bloque para hacer breaks.
+- En la página **canción** se configuran BPM, swing, tono, escala, largo del arreglo, click y modo (loop o cadena). **click**: *no*; *rec* = un compás de conteo solo al grabar (por defecto); *met* = el mismo conteo más un metrónomo en cada tiempo mientras tocás, nunca en la grabación. En swing_keys el metrónomo comparte canal con los acordes, así que puede cortar la 7.ª del acorde en cada tiempo. El arreglo tiene 16 bloques. Cada bloque elige un patrón de beats (letra de arriba) y uno de keys (letra de abajo), y se repite de ×1 a ×8. Cada parte se puede silenciar por bloque para hacer breaks. **relleno** (swing_beats y swing_mix): en el último compás de cada bloque que se repite ×2 o más suma un hat abierto en el paso 16 (*hat*), un redoble de caja en los pasos 13–16 (*caja*) o ambos; también queda en las grabaciones, y los bloques que suenan una vez no llevan relleno. **ref bat** (swing_keys): hace sonar la batería de la canción debajo de las teclas mientras tocás, para escribir contra el groove. Se apaga al grabar, así el stem de keys queda limpio; las notas de keys se demoran lo que tarda el PCM (~100 ms) para quedar a tiempo con la batería, y necesita el PICO-8 oficial (en fake-08 no hace nada).
 
 ## Groove: timing estilo Dilla
 

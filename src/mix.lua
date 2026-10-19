@@ -5,6 +5,7 @@
 -- nivel/mute/solo por stem en los
 -- bytes 14-15 de la cancion
 pbit,mbit,patb,pats,ro=0,0,0,1,true
+fills=true
 function lstr()
  stn=split(tx("beats,keys,ruido","beats,keys,noise"))
 end
@@ -294,7 +295,7 @@ function trig(i,_,s)
  if (mode==0) bp,kk,e=ep,ep,0
  if e&64==0 then
   for t=0,4 do
-   local v=fg(32+bp*20,t*16+s,2)
+   local v=fillv(t,s,fg(32+bp*20,t*16+s,2))
    if v>0 then
     local o=i+lead+max(-lead,boff(t,s)+hum(t,s))
     local f=fg(11,t,2)*55.125

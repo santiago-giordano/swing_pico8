@@ -13,6 +13,7 @@ __lua__
 -- 32-127 beats 128-239 keys
 -- 9 groove 10 deriva 11-12 flam
 -- 13 base swing (0=16, 1=8)
+-- 1: b0 version, b1-2 relleno
 -- 240-255 noise
 dd=0x5e00
 sr=5512.5
@@ -40,6 +41,18 @@ function fs(b,i,w,v)
  dirty=true
 end
 function sgd(i) return gd(i)-64 end
+
+-- relleno de beats (byte 1 bits 1-2:
+-- 1 hat, 2 caja, 3 ambos) en el
+-- ultimo compas de un bloque x2+
+function fillv(t,s,v)
+ local f=gd(1)>>1&3
+ if mode==1 and f>0 and rep>0 and rep==(1<<(gd(16+ci)>>4&3))-1 then
+  if (f&1>0 and t==4 and s==15) v=max(v,2)
+  if (f&2>0 and t==1 and s>11) v=max(v,({1,1,2,3})[s-11])
+ end
+ return v
+end
 
 -- ---- cancion ----
 function opensong(n)
@@ -277,6 +290,11 @@ function inp()
    if dx~=0 then pg=(pg-1+dx)%#pages+1 end
    if (dy~=0) ep=(ep+dy)%4
   end
+  -- x+o: duplicar (patron o bloque)
+  if o and not po then
+   xu=true ou=true
+   if (p.dup) p.dup()
+  end
  elseif o then
   if dx~=0 or dy~=0 then
    ou=true p.adj(dx,-dy)
@@ -363,7 +381,29 @@ function songpage()
     if (dx~=0 and mbit) sd(16+i,e^^mbit)
    end})
  end
- return ipage(tx("cancion","song"),its,nil,ro and tx("arreglo: se edita en beats/keys","arrangement: edit in beats/keys") or tx("o:patron o+^v:x2 o+<>:mute","o:pattern o+^v:x2 o+<>:mute"))
+ if fills then
+  add(its,{x=2,y=64,l=tx("relleno","fill"),w=60,
+   v=function() return split(tx("no,hat,caja,ambos","none,hat,snare,both"))[(gd(1)>>1&3)+1] end,
+   a=function(d) sd(1,1|(((gd(1)>>1&3)+d)%4)<<1) end})
+ end
+ if refd then
+  add(its,{x=2,y=64,l=tx("ref bat","ref drm"),w=60,
+   v=function() return gd(239)&64>0 and tx("si","on") or "no" end,
+   a=function() sd(239,gd(239)^^64) end})
+ end
+ local p=ipage(tx("cancion","song"),its,nil,ro and tx("arreglo: se edita en beats/keys","arrangement: edit in beats/keys") or tx("o:patron o+^v:x2 x+o:copia","o:pattern o+^v:x2 x+o:copy"))
+ -- x+o sobre un bloque: inserta una copia
+ -- a continuacion (corre el resto)
+ p.dup=function()
+  local i=its[p.ic].i
+  if ro or not i or i>14 then return end
+  for j=15,i+2,-1 do sd(16+j,gd(15+j)) end
+  sd(17+i,gd(16+i))
+  if (i<gd(7)) sd(7,min(16,gd(7)+1))
+  p.ic+=1
+  say(tx("bloque copiado","block copied"))
+ end
+ return p
 end
 
 function chaincell(t,s)
@@ -428,6 +468,22 @@ function tabs()
  end
 end
 
+-- duplica el patron actual en la letra
+-- siguiente si esta vacia y va ahi
+function duppat()
+ local n=(ep+1)%4
+ local e=true
+ for i=0,pats-1 do
+  if (gd(patb+n*pats+i)>0) e=false
+ end
+ local l=split("a,b,c,d")[n+1]
+ if e then
+  for i=0,pats-1 do sd(patb+n*pats+i,gd(patb+ep*pats+i)) end
+  say(tx("copiado a ","copied to ")..l)
+ else say(l..tx(" no esta vacio"," is not empty")) end
+ ep=n
+end
+
 -- ---- portapapeles ----
 function copypat(p)
  clip={}
@@ -451,7 +507,7 @@ end
 
 function footer(h)
  rectfill(0,120,127,127,1)
- print(h,2,121,5)
+ print(h,1,121,5)
 end
 
 function cpu(x,y)
@@ -459,8 +515,12 @@ function cpu(x,y)
  print("cpu "..c.."%",x,y,c>80 and 8 or 5)
 end
 
+function say(m) msg,msgt=m,70 end
 function statusline()
- if rec and playing then
+ if msgt and msgt>0 then
+  msgt-=1
+  print(msg,64-#msg*2,113,12)
+ elseif rec and playing then
   local s=cnt and cnt>0 and tx("conteo...","count-in...") or tx("rec bloque ","rec block ")..(curc+1).."/"..gd(7)
   print(s,64-#s*2,113,8)
  elseif done and done>0 then
@@ -503,6 +563,7 @@ end
 -- bateria por pcm (5512hz) con
 -- swing y nudge a nivel muestra
 pbit,mbit,patb,pats=0,64,32,20
+fills=true
 tn=split("kik,snr,rim,hat,opn")
 velg={.35,.65,1}
 tunes={.84,.89,.94,1,1.06,1.12,1.19}
@@ -676,7 +737,7 @@ end
 -- ---- secuencia ----
 function trig(i,p,s)
  for t=0,4 do
-  local v=fg(32+p*20,t*16+s,2)
+  local v=fillv(t,s,fg(32+p*20,t*16+s,2))
   if v>0 then
    local o=i+lead+max(-lead,boff(t,s)+hum(t,s))
    -- flam: golpe ghost antes
@@ -713,7 +774,7 @@ function onstep() end
 
 -- ---- paginas ----
 function gridpage()
- local p={n=tx("patron","pattern"),h=tx("o:vel o+^v:vel o+<>:rota","o:vel o+^v:vel o+<>:rotate")}
+ local p={n=tx("patron","pattern"),h="o:vel o+^v:vel o+<>:rot x+o:dup",dup=duppat}
  p.mv=function(dx,dy) gx=(gx+dx)%16 gy=mid(0,4,gy+dy) end
  p.act=function()
   local b=32+ep*20

@@ -13,6 +13,7 @@ __lua__
 -- 32-127 beats 128-239 keys
 -- 9 groove 10 deriva 11-12 flam
 -- 13 base swing (0=16, 1=8)
+-- 1: b0 version, b1-2 relleno
 -- 240-255 noise
 dd=0x5e00
 sr=5512.5
@@ -40,6 +41,18 @@ function fs(b,i,w,v)
  dirty=true
 end
 function sgd(i) return gd(i)-64 end
+
+-- relleno de beats (byte 1 bits 1-2:
+-- 1 hat, 2 caja, 3 ambos) en el
+-- ultimo compas de un bloque x2+
+function fillv(t,s,v)
+ local f=gd(1)>>1&3
+ if mode==1 and f>0 and rep>0 and rep==(1<<(gd(16+ci)>>4&3))-1 then
+  if (f&1>0 and t==4 and s==15) v=max(v,2)
+  if (f&2>0 and t==1 and s>11) v=max(v,({1,1,2,3})[s-11])
+ end
+ return v
+end
 
 -- ---- cancion ----
 function opensong(n)
@@ -277,6 +290,11 @@ function inp()
    if dx~=0 then pg=(pg-1+dx)%#pages+1 end
    if (dy~=0) ep=(ep+dy)%4
   end
+  -- x+o: duplicar (patron o bloque)
+  if o and not po then
+   xu=true ou=true
+   if (p.dup) p.dup()
+  end
  elseif o then
   if dx~=0 or dy~=0 then
    ou=true p.adj(dx,-dy)
@@ -363,7 +381,29 @@ function songpage()
     if (dx~=0 and mbit) sd(16+i,e^^mbit)
    end})
  end
- return ipage(tx("cancion","song"),its,nil,ro and tx("arreglo: se edita en beats/keys","arrangement: edit in beats/keys") or tx("o:patron o+^v:x2 o+<>:mute","o:pattern o+^v:x2 o+<>:mute"))
+ if fills then
+  add(its,{x=2,y=64,l=tx("relleno","fill"),w=60,
+   v=function() return split(tx("no,hat,caja,ambos","none,hat,snare,both"))[(gd(1)>>1&3)+1] end,
+   a=function(d) sd(1,1|(((gd(1)>>1&3)+d)%4)<<1) end})
+ end
+ if refd then
+  add(its,{x=2,y=64,l=tx("ref bat","ref drm"),w=60,
+   v=function() return gd(239)&64>0 and tx("si","on") or "no" end,
+   a=function() sd(239,gd(239)^^64) end})
+ end
+ local p=ipage(tx("cancion","song"),its,nil,ro and tx("arreglo: se edita en beats/keys","arrangement: edit in beats/keys") or tx("o:patron o+^v:x2 x+o:copia","o:pattern o+^v:x2 x+o:copy"))
+ -- x+o sobre un bloque: inserta una copia
+ -- a continuacion (corre el resto)
+ p.dup=function()
+  local i=its[p.ic].i
+  if ro or not i or i>14 then return end
+  for j=15,i+2,-1 do sd(16+j,gd(15+j)) end
+  sd(17+i,gd(16+i))
+  if (i<gd(7)) sd(7,min(16,gd(7)+1))
+  p.ic+=1
+  say(tx("bloque copiado","block copied"))
+ end
+ return p
 end
 
 function chaincell(t,s)
@@ -428,6 +468,22 @@ function tabs()
  end
 end
 
+-- duplica el patron actual en la letra
+-- siguiente si esta vacia y va ahi
+function duppat()
+ local n=(ep+1)%4
+ local e=true
+ for i=0,pats-1 do
+  if (gd(patb+n*pats+i)>0) e=false
+ end
+ local l=split("a,b,c,d")[n+1]
+ if e then
+  for i=0,pats-1 do sd(patb+n*pats+i,gd(patb+ep*pats+i)) end
+  say(tx("copiado a ","copied to ")..l)
+ else say(l..tx(" no esta vacio"," is not empty")) end
+ ep=n
+end
+
 -- ---- portapapeles ----
 function copypat(p)
  clip={}
@@ -451,7 +507,7 @@ end
 
 function footer(h)
  rectfill(0,120,127,127,1)
- print(h,2,121,5)
+ print(h,1,121,5)
 end
 
 function cpu(x,y)
@@ -459,8 +515,12 @@ function cpu(x,y)
  print("cpu "..c.."%",x,y,c>80 and 8 or 5)
 end
 
+function say(m) msg,msgt=m,70 end
 function statusline()
- if rec and playing then
+ if msgt and msgt>0 then
+  msgt-=1
+  print(msg,64-#msg*2,113,12)
+ elseif rec and playing then
   local s=cnt and cnt>0 and tx("conteo...","count-in...") or tx("rec bloque ","rec block ")..(curc+1).."/"..gd(7)
   print(s,64-#s*2,113,8)
  elseif done and done>0 then
@@ -503,6 +563,7 @@ end
 -- bajo, lead y acordes por grados
 -- de la escala de la cancion
 pbit,mbit,patb,pats=2,128,128,24
+refd=true
 function lstr()
  rn=split(tx("baj,led,aco","bas,led,chd"))
  wn=split(tx("tri,sier,sie2,cuad,puls,orga,fase","tri,saw,saw2,sqr,puls,orgn,phas"))
@@ -627,6 +688,92 @@ function play(r,v)
 end
 pl={}
 
+
+-- ---- bateria de referencia (pcm) ----
+-- al tocar (no al grabar) suena abajo
+-- la bateria de beats. las teclas por
+-- chip se demoran lo que tarda el pcm
+velg={.35,.65,1}
+tunes={.84,.89,.94,1,1.06,1.12,1.19}
+kits={
+"1500,160,50,90,700,1,.08,80,.5,0,.4,1300,230,185,200,250,.45,.85,500,.6,.3,0,400,900,750,100,70,.6,.35,60,1,1,0,300,0,0,1,1,0,.7,60,1,1,0,1500,0,0,1,1,0,.6,500,.9,1,0",
+"1800,120,44,140,1000,1,.04,60,.3,0,.15,1100,210,180,300,320,.7,.45,380,.35,.1,0,350,700,650,120,90,.8,.2,50,.7,.6,0,260,0,0,1,1,0,.5,50,.6,1,0,1400,0,0,1,1,0,.45,420,.6,1,0",
+"1200,190,58,60,450,1,.15,60,.7,0,.6,1000,250,190,150,200,.35,1,420,.9,.5,.2,300,1300,1100,80,50,.5,.5,40,1,1,.2,260,0,0,1,1,0,.9,45,1,1,.1,1300,0,0,1,1,0,.8,450,1,1,0"}
+vb,vn,vp,vg,kq={},{},{},{},{}
+lpf,idl,rmode=0,0,false
+
+function syn(n,f0,f1,pd,ad,ta,na,nd,nc,hp,ck)
+ local b,ph,a,an,p,nl,pn={},0,1,1,1,0,0
+ local ka,kn,kp=1-.693/ad,1-.693/nd,1-.693/pd
+ for i=1,n do
+  ph+=(f1+(f0-f1)*p)/sr
+  local x=rnd(2)-1
+  nl+=(x-nl)*nc
+  local v=sin(ph)*a*ta+(nl*(1-hp)+(nl-pn)*hp*2)*an*na
+  pn=nl
+  if (i<12) v+=x*ck
+  if (i>n-60) v*=(n-i)/60
+  b[i]=v
+  a*=ka an*=kn p*=kp
+ end
+ return b
+end
+
+function rend(t)
+ local k=split(kits[gd(123)+1])
+ local tu=tunes[(gd(127)>>2&7)+1]
+ local q={unpack(k,(t-1)*11+1,t*11)}
+ q[2]*=tu q[3]*=tu
+ local b=syn(unpack(q))
+ if t==1 and gd(127)&32<1 then
+  local ph,a,f=0,1,700*tu
+  for i,v in ipairs(b) do
+   ph+=f/sr f=max(300*tu,f*.997) a*=.993
+   v+=sin(ph)*a
+   b[i]=v*5/(1+abs(v*4))
+  end
+ end
+ vb[t]=b vn[t]=q[1]
+end
+
+function gen(n)
+ local tc,drv=(gd(124)+1)/8,1+gd(125)*.5
+ for i=0,n-1 do
+  if (i>=nxt) service(i)
+  local s,on=0
+  for t=1,5 do
+   local p=vp[t]
+   if p then
+    s+=vb[t][p]*vg[t]
+    vp[t]=p<vn[t] and p+1 or nil
+    on=1
+   end
+  end
+  idl=on and 0 or min(idl+1,2000)
+  if idl<2000 then
+   lpf+=(s-lpf)*tc
+   s=lpf*drv
+   s/=1+abs(s)*.5
+  else lpf=0 s=0 end
+  poke(0x4300+i,128+mid(-127,127,s*60))
+ end
+end
+
+function trigd(i,s)
+ local e=gd(16+ci)
+ if mode==1 and e&64>0 then return end
+ local bp=mode==0 and ep or e&3
+ for t=0,4 do
+  local v=fillv(t,s,fg(32+bp*20,t*16+s,2))
+  if v>0 then
+   local o=i+lead+max(-lead,boff(t,s)+hum(t,s))
+   local f=fg(11,t,2)*55.125
+   if (f>0 and v>1) push(max(i,o-f),{h=t+1,v=1})
+   push(o,{h=t+1,v=v})
+  end
+ end
+end
+
 -- ---- secuencia ----
 function trig(i,p,s)
  for r=0,2 do
@@ -635,9 +782,17 @@ function trig(i,p,s)
    push(i+lead+max(-lead,swo(gd(3),s)+sgd(228+r*5)*5.5125+hum(5+r,s)),{r=r,v=v})
   end
  end
+ if (rmode) trigd(i,s)
 end
 
-function fire(e)
+function fire(e,i)
+ if not rmode then fire0(e)
+ elseif e.h then
+  vp[e.h],vg[e.h]=1,(gd(117+e.h)&7)/7*velg[e.v]
+  if (e.h==4) vp[5]=nil
+ else add(kq,{f=(bl+i)/91.875+.5,e=e}) end
+end
+function fire0(e)
  if e.ck then
   for i=1,32 do wnote(4,i,i<3 and (e.a and 46 or 41) or 0,4,i<3 and 5 or 0) end
   poke(0x3200+4*68+64,0,2,0,0)
@@ -646,10 +801,17 @@ function fire(e)
 end
 
 kd=0
-function onstart() kd=0 end
+function onstart()
+ kd=0
+ rmode=gd(239)&64>0 and pcmok and not rec
+ if rmode then
+  if (not vb[1]) for t=1,5 do rend(t) end
+  vp={} kq={} lpf=0 idl=0
+ end
+end
 function onstop()
  for k=0,3 do sfx(-1,k) end
- lit={}
+ lit={} kq={} vp={}
 end
 function onend() play(2,15) play(0,15) play(1,15) end
 function onstep() end
@@ -662,7 +824,7 @@ function cellch(r,v)
 end
 
 function gridpage()
- local p={n=tx("patron","pattern"),h=tx("o:nota o+^v:grado o+<>:rota","o:note o+^v:degree o+<>:rotate")}
+ local p={n=tx("patron","pattern"),h=tx("o:nota o+^v:gr o+<>:rot x+o:dup","o:note o+^v:deg o+<>:rot x+o:dup"),dup=duppat}
  p.mv=function(dx,dy) kx=(kx+dx)%16 ky=mid(0,2,ky+dy) end
  local function at() return 128+ep*24,kx*3+ky end
  p.act=function()
@@ -826,7 +988,19 @@ function _update60()
  -- bloques; seguirlo crudo mete
  -- saltos de 2-3 frames)
  local n=91.875
- if pcmok then
+ if playing and rmode then
+  local q=pcmneed(1024)
+  if q>0 then
+   bl=stat(108)
+   gen(q)
+   serial(0x808,0x4300,q)
+   shift(q)
+  end
+  for u in all(kq) do
+   u.f-=1
+   if (u.f<=0) del(kq,u) fire0(u.e)
+  end
+ elseif pcmok then
   local q=pcmneed(768)
   memset(0x4300,128,q)
   if (q>0) serial(0x808,0x4300,q)
@@ -834,7 +1008,7 @@ function _update60()
   n=max(0,n+(kd-n)*.1)
   kd-=n
  end
- if (playing) advance(n)
+ if (playing and not rmode) advance(n)
  inp()
  uitick()
  savetick()

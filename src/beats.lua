@@ -2,6 +2,7 @@
 -- bateria por pcm (5512hz) con
 -- swing y nudge a nivel muestra
 pbit,mbit,patb,pats=0,64,32,20
+fills=true
 tn=split("kik,snr,rim,hat,opn")
 velg={.35,.65,1}
 tunes={.84,.89,.94,1,1.06,1.12,1.19}
@@ -175,7 +176,7 @@ end
 -- ---- secuencia ----
 function trig(i,p,s)
  for t=0,4 do
-  local v=fg(32+p*20,t*16+s,2)
+  local v=fillv(t,s,fg(32+p*20,t*16+s,2))
   if v>0 then
    local o=i+lead+max(-lead,boff(t,s)+hum(t,s))
    -- flam: golpe ghost antes
@@ -212,7 +213,7 @@ function onstep() end
 
 -- ---- paginas ----
 function gridpage()
- local p={n=tx("patron","pattern"),h=tx("o:vel o+^v:vel o+<>:rota","o:vel o+^v:vel o+<>:rotate")}
+ local p={n=tx("patron","pattern"),h="o:vel o+^v:vel o+<>:rot x+o:dup",dup=duppat}
  p.mv=function(dx,dy) gx=(gx+dx)%16 gy=mid(0,4,gy+dy) end
  p.act=function()
   local b=32+ep*20

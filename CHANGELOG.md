@@ -2,6 +2,17 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/). Versions follow [SemVer](https://semver.org/).
 
+## [2.7.0] - 2026-10-19
+
+### Added
+- **Duplicate** with X+O. On a pattern grid (beats and keys) it copies the pattern into the next letter when that one is empty and moves there; if it is not empty nothing is overwritten. On the song page, on a block, it inserts a copy of the block right after it and shifts the rest.
+- **fill** on the song page of swing_beats and swing_mix (song byte 1, bits 1–2): on the last bar of every block that repeats ×2 or more, an open hat on step 16, a snare roll on steps 13–16, or both. Recordings include it.
+- **ref drm** on the song page of swing_keys (byte 239 bit 6): the song's drums play under the keys while you play. Off while recording. Keys notes are delayed by the PCM latency to stay with the drums (about ±2 ms against the drums in the test rig). Needs PCM.
+- Tests for fill, both duplicate gestures and the drum reference.
+
+### Changed
+- The footer line starts one pixel to the left so 32-character help texts fit.
+
 ## [2.6.0] - 2026-10-19
 
 ### Fixed

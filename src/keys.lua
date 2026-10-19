@@ -2,6 +2,7 @@
 -- bajo, lead y acordes por grados
 -- de la escala de la cancion
 pbit,mbit,patb,pats=2,128,128,24
+refd=true
 function lstr()
  rn=split(tx("baj,led,aco","bas,led,chd"))
  wn=split(tx("tri,sier,sie2,cuad,puls,orga,fase","tri,saw,saw2,sqr,puls,orgn,phas"))
@@ -126,6 +127,92 @@ function play(r,v)
 end
 pl={}
 
+
+-- ---- bateria de referencia (pcm) ----
+-- al tocar (no al grabar) suena abajo
+-- la bateria de beats. las teclas por
+-- chip se demoran lo que tarda el pcm
+velg={.35,.65,1}
+tunes={.84,.89,.94,1,1.06,1.12,1.19}
+kits={
+"1500,160,50,90,700,1,.08,80,.5,0,.4,1300,230,185,200,250,.45,.85,500,.6,.3,0,400,900,750,100,70,.6,.35,60,1,1,0,300,0,0,1,1,0,.7,60,1,1,0,1500,0,0,1,1,0,.6,500,.9,1,0",
+"1800,120,44,140,1000,1,.04,60,.3,0,.15,1100,210,180,300,320,.7,.45,380,.35,.1,0,350,700,650,120,90,.8,.2,50,.7,.6,0,260,0,0,1,1,0,.5,50,.6,1,0,1400,0,0,1,1,0,.45,420,.6,1,0",
+"1200,190,58,60,450,1,.15,60,.7,0,.6,1000,250,190,150,200,.35,1,420,.9,.5,.2,300,1300,1100,80,50,.5,.5,40,1,1,.2,260,0,0,1,1,0,.9,45,1,1,.1,1300,0,0,1,1,0,.8,450,1,1,0"}
+vb,vn,vp,vg,kq={},{},{},{},{}
+lpf,idl,rmode=0,0,false
+
+function syn(n,f0,f1,pd,ad,ta,na,nd,nc,hp,ck)
+ local b,ph,a,an,p,nl,pn={},0,1,1,1,0,0
+ local ka,kn,kp=1-.693/ad,1-.693/nd,1-.693/pd
+ for i=1,n do
+  ph+=(f1+(f0-f1)*p)/sr
+  local x=rnd(2)-1
+  nl+=(x-nl)*nc
+  local v=sin(ph)*a*ta+(nl*(1-hp)+(nl-pn)*hp*2)*an*na
+  pn=nl
+  if (i<12) v+=x*ck
+  if (i>n-60) v*=(n-i)/60
+  b[i]=v
+  a*=ka an*=kn p*=kp
+ end
+ return b
+end
+
+function rend(t)
+ local k=split(kits[gd(123)+1])
+ local tu=tunes[(gd(127)>>2&7)+1]
+ local q={unpack(k,(t-1)*11+1,t*11)}
+ q[2]*=tu q[3]*=tu
+ local b=syn(unpack(q))
+ if t==1 and gd(127)&32<1 then
+  local ph,a,f=0,1,700*tu
+  for i,v in ipairs(b) do
+   ph+=f/sr f=max(300*tu,f*.997) a*=.993
+   v+=sin(ph)*a
+   b[i]=v*5/(1+abs(v*4))
+  end
+ end
+ vb[t]=b vn[t]=q[1]
+end
+
+function gen(n)
+ local tc,drv=(gd(124)+1)/8,1+gd(125)*.5
+ for i=0,n-1 do
+  if (i>=nxt) service(i)
+  local s,on=0
+  for t=1,5 do
+   local p=vp[t]
+   if p then
+    s+=vb[t][p]*vg[t]
+    vp[t]=p<vn[t] and p+1 or nil
+    on=1
+   end
+  end
+  idl=on and 0 or min(idl+1,2000)
+  if idl<2000 then
+   lpf+=(s-lpf)*tc
+   s=lpf*drv
+   s/=1+abs(s)*.5
+  else lpf=0 s=0 end
+  poke(0x4300+i,128+mid(-127,127,s*60))
+ end
+end
+
+function trigd(i,s)
+ local e=gd(16+ci)
+ if mode==1 and e&64>0 then return end
+ local bp=mode==0 and ep or e&3
+ for t=0,4 do
+  local v=fillv(t,s,fg(32+bp*20,t*16+s,2))
+  if v>0 then
+   local o=i+lead+max(-lead,boff(t,s)+hum(t,s))
+   local f=fg(11,t,2)*55.125
+   if (f>0 and v>1) push(max(i,o-f),{h=t+1,v=1})
+   push(o,{h=t+1,v=v})
+  end
+ end
+end
+
 -- ---- secuencia ----
 function trig(i,p,s)
  for r=0,2 do
@@ -134,9 +221,17 @@ function trig(i,p,s)
    push(i+lead+max(-lead,swo(gd(3),s)+sgd(228+r*5)*5.5125+hum(5+r,s)),{r=r,v=v})
   end
  end
+ if (rmode) trigd(i,s)
 end
 
-function fire(e)
+function fire(e,i)
+ if not rmode then fire0(e)
+ elseif e.h then
+  vp[e.h],vg[e.h]=1,(gd(117+e.h)&7)/7*velg[e.v]
+  if (e.h==4) vp[5]=nil
+ else add(kq,{f=(bl+i)/91.875+.5,e=e}) end
+end
+function fire0(e)
  if e.ck then
   for i=1,32 do wnote(4,i,i<3 and (e.a and 46 or 41) or 0,4,i<3 and 5 or 0) end
   poke(0x3200+4*68+64,0,2,0,0)
@@ -145,10 +240,17 @@ function fire(e)
 end
 
 kd=0
-function onstart() kd=0 end
+function onstart()
+ kd=0
+ rmode=gd(239)&64>0 and pcmok and not rec
+ if rmode then
+  if (not vb[1]) for t=1,5 do rend(t) end
+  vp={} kq={} lpf=0 idl=0
+ end
+end
 function onstop()
  for k=0,3 do sfx(-1,k) end
- lit={}
+ lit={} kq={} vp={}
 end
 function onend() play(2,15) play(0,15) play(1,15) end
 function onstep() end
@@ -161,7 +263,7 @@ function cellch(r,v)
 end
 
 function gridpage()
- local p={n=tx("patron","pattern"),h=tx("o:nota o+^v:grado o+<>:rota","o:note o+^v:degree o+<>:rotate")}
+ local p={n=tx("patron","pattern"),h=tx("o:nota o+^v:gr o+<>:rot x+o:dup","o:note o+^v:deg o+<>:rot x+o:dup"),dup=duppat}
  p.mv=function(dx,dy) kx=(kx+dx)%16 ky=mid(0,2,ky+dy) end
  local function at() return 128+ep*24,kx*3+ky end
  p.act=function()
@@ -325,7 +427,19 @@ function _update60()
  -- bloques; seguirlo crudo mete
  -- saltos de 2-3 frames)
  local n=91.875
- if pcmok then
+ if playing and rmode then
+  local q=pcmneed(1024)
+  if q>0 then
+   bl=stat(108)
+   gen(q)
+   serial(0x808,0x4300,q)
+   shift(q)
+  end
+  for u in all(kq) do
+   u.f-=1
+   if (u.f<=0) del(kq,u) fire0(u.e)
+  end
+ elseif pcmok then
   local q=pcmneed(768)
   memset(0x4300,128,q)
   if (q>0) serial(0x808,0x4300,q)
@@ -333,7 +447,7 @@ function _update60()
   n=max(0,n+(kd-n)*.1)
   kd-=n
  end
- if (playing) advance(n)
+ if (playing and not rmode) advance(n)
  inp()
  uitick()
  savetick()

@@ -157,8 +157,123 @@ def on_load(out):
     x, sr = on.load(os.path.join(out, "a.wav"))
     return np.array(x), sr
 
+
+def test_fill():
+    """block x2 with fill: the last bar gets a snare roll (steps 12-15) and/or an open hat on step 15; bar 1 stays plain"""
+    step = 15 / 90
+    bar = 16 * step
+    res = {}
+    for fill in (0, 1, 2):
+        b = sf.blank(bpm=90, swing=50, length=1)
+        b[1] = 1 | fill << 1
+        b[16] = 1 << 4          # block 0: pattern a, x2
+        sf.beats_pattern(b, 0, ["3000000000000000", "0" * 16, "0" * 16, "0" * 16, "0" * 16])
+        sf.beats_params(b, nudge=(0,) * 5)
+        out = os.path.join(OUT, f"fill_{fill}")
+        shutil.rmtree(out, ignore_errors=True)
+        sf.write(os.path.join(out, "sys/cdata/swingbox_cancion1.p8d.txt"), b)
+        R.run(R.cart("swing_beats"), out, "w 20;t o;w 40;w 10 s;w 10;w 6 d;w 6;wav a;w 6 o;w 6;w 700;wavend")
+        x, sr = on.load(os.path.join(out, "a.wav"))
+        x = np.array(x)
+        acc = band(x, sr, 2050, 2350)
+        t1 = first(acc, sr, 0, 0.5 * np.abs(acc[:sr]).max())
+        hi = band(x, sr, 3000, 2700 + 1300)
+        def e(bar_i, a, c):
+            t0 = t1 + (1 + bar_i) * bar + a * step
+            seg = x[int(t0 * sr):int((t0 + (c - a) * step) * sr)]
+            return float(np.sqrt(np.mean(seg ** 2)))
+        res[fill] = (e(0, 12, 16), e(1, 12, 16))
+    print("rms steps 12-15, bar1/bar2:", {k: tuple(round(v, 4) for v in r) for k, r in res.items()})
+    for f in (0, 1, 2):
+        assert res[f][0] < 0.01            # first bar: nothing but the tail
+    assert res[0][1] < 0.01
+    assert res[1][1] > 5 * max(res[0][1], 0.002)
+    assert res[2][1] > 5 * max(res[0][1], 0.002)
+
+
+def test_duplicate():
+    """x+o: pattern -> next letter when empty; block -> inserted copy"""
+    b = sf.blank(bpm=90, swing=50, length=2)
+    b[16], b[17] = 0b00010001, 0b00100010   # block 0: beats b x2, keys a; block 1: beats c x4
+    b[127] = 128 | 3 << 2
+    sf.beats_pattern(b, 0, ["3000300030003000", "0" * 16, "0" * 16, "2222222222222222", "0" * 16])
+    sf.beats_pattern(b, 1, ["0" * 16, "0" * 16, "0" * 16, "0" * 16, "0" * 16])
+    sf.beats_pattern(b, 2, ["0" * 16, "0" * 16, "0" * 16, "0" * 16, "0" * 16])
+    sf.fset(b, 32 + 2 * 20, 5, 2, 1)       # pattern c is not empty
+    out = os.path.join(OUT, "dup")
+    shutil.rmtree(out, ignore_errors=True)
+    path = os.path.join(out, "sys/cdata/swingbox_cancion1.p8d.txt")
+    sf.write(path, b)
+    R.run(R.cart("swing_beats"), out, "w 20;t o;w 20;hold x o;w 10;hold x o;w 10;w 60")
+    c = sf.read(path)
+    a, bb, cc = c[32:52], c[52:72], c[72:92]
+    print("pattern a -> b copied:", a == bb, "; c (not empty) untouched:", cc == b[72:92])
+    assert a == bb and a != bytes(20)
+    assert cc == b[72:92]
+    # block copy: song page, down x3 to the first block
+    out = os.path.join(OUT, "dup2")
+    shutil.rmtree(out, ignore_errors=True)
+    path = os.path.join(out, "sys/cdata/swingbox_cancion1.p8d.txt")
+    sf.write(path, b)
+    R.run(R.cart("swing_beats"), out, "w 20;t o;w 20;hold x r;hold x r;hold x r;t d;t d;t d;hold x o;w 10;w 60")
+    c = sf.read(path)
+    print("blocks:", [bin(v) for v in c[16:20]], "len", c[7])
+    assert c[7] == 3 and c[16] == 0b00010001 and c[17] == 0b00010001 and c[18] == 0b00100010
+
+
+def test_keys_reference():
+    """swing_keys with the drum reference on: hats sound, and the bass lands between them like in the mix;
+    with it off (and while recording) nothing changes"""
+    res = {}
+    for ref in (False, True):
+        b = song()
+        b[239] = 128 | (64 if ref else 0)
+        out = os.path.join(OUT, f"ref_{int(ref)}")
+        shutil.rmtree(out, ignore_errors=True)
+        sf.write(os.path.join(out, "sys/cdata/swingbox_cancion1.p8d.txt"), b)
+        R.run(R.cart("swing_keys"), out, "w 20;t o;w 30;t x;w 20;wav a;w 420;wavend")
+        x, sr = on.load(os.path.join(out, "a.wav"))
+        x = np.array(x)
+        hat = band(x, sr, 2000, 2700)
+        bas = band(x, sr, 40, 400)
+        res[ref] = (x, sr, hat, bas)
+    x, sr, hat, bas = res[True]
+    print("hat band peak, reference off/on:", float(np.abs(res[False][2]).max()), float(np.abs(hat).max()))
+    assert np.abs(res[False][2]).max() < 0.3 * np.abs(hat).max(), "hats only with the reference"
+    th, tb = 0.4 * np.abs(hat).max(), 0.4 * np.abs(bas).max()
+    step = 15 / 90
+    hats, t = [], 0
+    while True:
+        h = first(hat, sr, t, th)
+        if h >= len(x) / sr - 0.01:
+            break
+        hats.append(h)
+        t = h + 4 * step
+    offs = []
+    for a, c in zip(hats, hats[1:]):
+        bb = first(bas, sr, a + step, tb)
+        offs.append((bb - (a + c) / 2) * 1000)
+    print("keys vs drum reference (ms):", " ".join(f"{o:+.1f}" for o in offs))
+    assert len(offs) >= 3 and max(abs(o) for o in offs) < 25
+    # recording: the reference stays off
+    b = song()
+    b[239] = 128 | 64
+    b[8] = 1
+    out = os.path.join(OUT, "ref_rec")
+    shutil.rmtree(out, ignore_errors=True)
+    sf.write(os.path.join(out, "sys/cdata/swingbox_cancion1.p8d.txt"), b)
+    R.run(R.cart("swing_keys"), out, "w 20;t o;w 40;w 10 s;w 10;w 6 d;w 6;wav a;w 6 o;w 6;w 400;wavend")
+    x, sr = on.load(os.path.join(out, "a.wav"))
+    x = np.array(x)
+    h = band(x, sr, 2500, 2750)
+    print("hat energy while recording:", float(np.abs(h).max()))
+    assert np.abs(h).max() < 0.02
+
 if __name__ == "__main__":
     test_bass_speaker()
+    test_fill()
+    test_duplicate()
+    test_keys_reference()
     test_metronome()
     test_keys_align()
     test_mute()
