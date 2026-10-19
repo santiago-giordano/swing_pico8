@@ -466,10 +466,10 @@ function songpage()
    end})
  end
  if fills then
-  add(its,{x=2,y=64,l=tx("relleno","fill"),w=60,
+  add(its,{x=2,y=64,l=tx("relleno","fill"),w=52,
    v=function() return split(tx("no,hat,caja,ambos","none,hat,snare,both"))[(gd(1)>>1&3)+1] end,
    a=function(d) sd(1,gd(1)&0xf9|(((gd(1)>>1&3)+d)%4)<<1) end})
-  add(its,{x=66,y=64,l="poly",w=60,
+  add(its,{x=58,y=64,l="poly",w=34,
    v=function()
     local t=gd(1)>>3&7
     return t>0 and split("k,s,r,h,o")[t].." "..polyn[gd(1)\64+1] or "--"
@@ -486,6 +486,10 @@ function songpage()
    v=function() return gd(239)&64>0 and tx("si","on") or "no" end,
    a=function() sd(239,gd(239)^^64) end})
  end
+ -- botones de los textos de ayuda
+ add(its,{x=96,y=64,l="btn",w=30,
+  v=function() return split("a/b,b/a,o/x")[gd(13)\64+1] end,
+  a=function(d) sd(13,gd(13)&0x3f|((gd(13)\64+d)%3)<<6) end})
  -- diagnostico: estado del pcm
  local function dg()
   print("pcm "..(pcmok and "ok" or "no").." "..stat(108)..(clkr and " clk "..flr(clkr*100) or ""),2,113,5)
@@ -604,9 +608,25 @@ function savetick()
  end
 end
 
+-- nombres de botones en los textos de
+-- ayuda (byte 13 bits 6-7): 0 a/b,
+-- 1 b/a, 2 o/x (nombres de pico-8)
+function lbl(h)
+ local m=({{"a","b"},{"b","a"},{"o","x"}})[gd(13)\64+1]
+ local r=""
+ for i=1,#h do
+  local c,p,n=sub(h,i,i),sub(h,i-1,i-1),sub(h,i+1,i+1)
+  if (c=="o" or c=="x") and (i==1 or p==" " or p=="+") and (n==":" or n=="+" or n==" ") then
+   c=m[c=="o" and 1 or 2]
+  end
+  r..=c
+ end
+ return r
+end
+
 function footer(h)
  rectfill(0,120,127,127,1)
- print(h,1,121,5)
+ print(lbl(h),1,121,5)
 end
 
 function cpu(x,y)
@@ -646,7 +666,7 @@ function pickdraw(ti,su)
  print(ti,2,2,9)
  print(su,2,40,6)
  print(tx("elegi la cancion","choose a song"),2,50,7)
- local l=tx("x: english","x: espanol")
+ local l=lbl(tx("x: english","x: espanol"))
  print(l,126-#l*4,50,12)
  for i=1,8 do
   local x,y=4+(i-1)%4*31,62+(i-1)\4*22

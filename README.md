@@ -65,6 +65,8 @@ The drums and the ambience use PICO-8's PCM channel (`serial(0x808)`), which fak
 
 ## Controls (same in all four)
 
+This README uses PICO-8's own names, **O** and **X**. The on-screen help line shows **A** (= O) and **B** (= X) by default, which reads better on handhelds with A/B/X/Y buttons. The **btn** item on the song page switches it: *a/b*, *b/a* (swapped) or *o/x* (PICO-8 names). It only changes the text: which physical button acts as O or X is set by the emulator's controller mapping.
+
 | Action | Input |
 |---|---|
 | Move cursor | D-pad |

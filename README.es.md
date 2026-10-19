@@ -65,6 +65,8 @@ La batería y los ruidos usan el canal PCM de PICO-8 (`serial(0x808)`), que fake
 
 ## Controles (iguales en los cuatro)
 
+Este README usa los nombres de PICO-8, **O** y **X**. La línea de ayuda en pantalla muestra **A** (= O) y **B** (= X) por defecto, que se lee mejor en consolas con botones A/B/X/Y. El ítem **btn** de la página canción lo cambia: *a/b*, *b/a* (invertido) u *o/x* (nombres de PICO-8). Solo cambia el texto: qué botón físico actúa como O o X lo define el mapeo de control del emulador.
+
 | Acción | Control |
 |---|---|
 | Mover el cursor | D-pad |

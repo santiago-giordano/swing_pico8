@@ -2,6 +2,14 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/). Versions follow [SemVer](https://semver.org/).
 
+## [2.9.0] - 2026-10-19
+
+### Changed
+- The on-screen help line (and the song picker) now name the buttons **A** and **B** instead of **O** and **X** by default (A = O, B = X), which is clearer on handhelds with A/B/X/Y buttons.
+
+### Added
+- **btn** item on the song page of all four carts (song byte 13 bits 6–7): *a/b* (default), *b/a* or *o/x*. It changes only the text; the physical mapping is the emulator's.
+
 ## [2.8.2] - 2026-10-19
 
 ### Changed
