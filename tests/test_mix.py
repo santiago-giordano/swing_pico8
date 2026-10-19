@@ -373,14 +373,14 @@ def test_navigation():
     sf.write(path, b)
     script = ("w 20;t o;w 20;hold x r;hold x r;hold x r;"
               "t d;t r;hold o r;"          # bpm -> down -> len, right -> click, O+right: click 1 -> 2
-              "t r;t d;hold o u;"          # mode, down -> poly, O+up: poly grid 12 -> 10
-              "t d;t o;w 60")              # down -> block under poly (column kept), tap O
+              "t r;t d;t l;hold o u;"      # mode, down -> btn, left -> poly, O+up: poly grid 12 -> 10
+              "t d;t o;w 60")              # down -> block under poly, tap O
     R.run(R.cart("swing_beats"), out, script)
     c = sf.read(path)
-    print("click", c[8], "poly grid code", c[1] >> 6, "block 6 beats letter", c[16 + 6] & 3)
+    print("click", c[8], "poly grid code", c[1] >> 6, "block 4 beats letter", c[16 + 4] & 3)
     assert c[8] == 2
     assert c[1] >> 6 == 1
-    assert c[16 + 6] & 3 == 1
+    assert c[16 + 4] & 3 == 1
 
 if __name__ == "__main__":
     test_bass_speaker()
