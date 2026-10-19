@@ -355,17 +355,27 @@ function mixpage()
    local so=gd(15)\64
    sd(15,gd(15)&63|(so==k+1 and 0 or k+1)<<6) end})
  end
+ -- parlante: el mismo ajuste de
+ -- beats (byte 127 bit 5)
+ local function spk() sd(127,gd(127)^^32) renderall() end
+ add(its,{x=2,y=112,w=56,l=tx("parlante","speaker"),v=function() return gd(127)&32<1 and tx("si","on") or "no" end,a=spk,kk=spk})
  for t in all(its) do t.k=t.kk end
  return ipage(tx("mezcla","mix"),its,function()
   for k=0,2 do print(stn[k+1],6+k*42,46,ef(k)>0 and 6 or 5) end
-  local s=tx("loop ","loop ")..split("a,b,c,d")[ep+1]
+  local s,c=tx("loop ","loop ")..split("a,b,c,d")[ep+1],12
   if (mode==1) s=playing and tx("bloque ","block ")..(curc+1).."/"..gd(7) or tx("cadena","song")
-  print(s,2,108,12)
-  if (nq>1) print(tx("ruido 1/2","noise 1/2"),48,108,8)
-  cpu(96,108)
-  if (pcmok==false) print(tx("sin pcm: usa pico-8 oficial","no pcm: use official pico-8"),2,113,8)
+  if rec and playing then
+   s,c=cnt>0 and tx("conteo...","count-in...") or tx("rec bloque ","rec block ")..(curc+1).."/"..gd(7),8
+  elseif done and done>0 then s,c=tx("listo: corta la grabacion","done: stop recording"),10 end
+  if (pcmok==false) s,c=tx("sin pcm: usa pico-8 oficial","no pcm: use official pico-8"),8
+  print(s,2,105,c)
+  if (nq>1) print(tx("ruido 1/2","noise 1/2"),88,112,8)
+  cpu(96,105)
  end,tx("o+^v:nivel  o:mute/solo","o+^v:level  o:mute/solo"))
 end
+
+-- el estado va en la pagina
+function statusline() end
 
 function fadcell(t,s)
  local l,on=mlv(t.j),ef(t.j)>0

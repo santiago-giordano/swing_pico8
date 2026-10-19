@@ -79,7 +79,7 @@ La batería y los ruidos usan el canal PCM de PICO-8 (`serial(0x808)`), que fake
 
 - Al abrir un cartucho elegís la canción, de c1 a c8. **Elegí la misma en los tres.**
 - Cada canción es un archivo de cartdata, `swingbox_cancionN.p8d.txt`, en la carpeta `cdata` de PICO-8. Copiando ese archivo respaldás o compartís la canción entera.
-- En la página **canción** se configuran BPM, swing, tono, escala, largo del arreglo, click de conteo y modo (loop o cadena). El arreglo tiene 16 bloques. Cada bloque elige un patrón de beats (letra de arriba) y uno de keys (letra de abajo), y se repite de ×1 a ×8. Cada parte se puede silenciar por bloque para hacer breaks.
+- En la página **canción** se configuran BPM, swing, tono, escala, largo del arreglo, click y modo (loop o cadena). **click**: *no*; *rec* = un compás de conteo solo al grabar (por defecto); *met* = el mismo conteo más un metrónomo en cada tiempo mientras tocás, nunca en la grabación. En swing_keys el metrónomo comparte canal con los acordes, así que puede cortar la 7.ª del acorde en cada tiempo. El arreglo tiene 16 bloques. Cada bloque elige un patrón de beats (letra de arriba) y uno de keys (letra de abajo), y se repite de ×1 a ×8. Cada parte se puede silenciar por bloque para hacer breaks.
 
 ## Groove: timing estilo Dilla
 
@@ -109,7 +109,7 @@ Keys y noise siguen el swing de la canción; el ducking de noise sigue el timing
 
 Ningún cartucho guarda audio: cada uno guarda su parte de la partitura (pasos, notas, kit, groove, niveles) en el archivo de canción, y el sonido se genera al dar play. `swing_mix` lee esas tres partes de la misma canción y las hace sonar juntas. Como PICO-8 corre un cartucho a la vez, lleva adentro los tres motores: batería y ruido por PCM, teclas por los canales de chip. Abrí la misma canción, tocá X y reproduce el arreglo (o el patrón A–D en modo loop).
 
-- Página **mezcla**: por stem, un fader (O+↑↓), un medidor y **M**ute / **S**olo (tocar O). Los niveles se guardan en la canción. Solo afectan a swing_mix; los stems que grabás desde cada cartucho no cambian.
+- Página **mezcla**: por stem, un fader (O+↑↓), un medidor y **M**ute / **S**olo (tocar O), más la opción **parlante** (es la misma de swing_beats: cambia el bombo de la canción para los dos). Los niveles se guardan en la canción. Solo afectan a swing_mix; los stems que grabás desde cada cartucho no cambian.
 - Página **canción**: tempo, swing, tono y modo. El arreglo acá es de solo lectura; se edita en beats o keys.
 - *Pausa → grabar mezcla* graba la mezcla completa con el mismo conteo, por si querés una toma rápida por la salida de línea.
 - Si la CPU queda por encima de ~88 % sonando, el ruido pasa a media tasa hasta el próximo stop (la página muestra *ruido 1/2*). La batería mantiene siempre la calidad completa.

@@ -7,6 +7,8 @@ __lua__
 -- 0 magia 1 version 2 bpm
 -- 3 swing 4 tono 5 escala
 -- 6 semilla 7 largo 8 click
+-- (0 no, 1 conteo al grabar,
+-- 2 conteo + metronomo)
 -- 16-31 cadena (arreglo)
 -- 32-127 beats 128-239 keys
 -- 9 groove 10 deriva 11-12 flam
@@ -166,6 +168,9 @@ function seqstep(i)
   end
  end
  stp=st
+ -- click 2: metronomo al tocar
+ -- (nunca en la grabacion)
+ if (gd(8)>1 and not rec and st%4==0) push(i+lead,{ck=1,a=st==0})
  push(i+lead,{m=st,p=pp,c2=ci})
  if (not mt) trig(i,pp,st)
  st+=1
@@ -339,7 +344,7 @@ function songpage()
   {x=66,y=46,l=tx("tono","key"),v=function() return notes[gd(4)+1] end,a=function(d) sd(4,(gd(4)+d)%12) end},
   {x=98,y=46,l=tx("esc","scl"),v=function() return sub(scn[gd(5)+1],1,3) end,a=function(d) sd(5,(gd(5)+d)%4) end},
   {x=2,y=56,l=tx("largo","len"),v=function() return gd(7) end,a=function(d) clampset(7,d,1,16) end,w=40},
-  {x=46,y=56,l="click",v=function() return gd(8)>0 and tx("si","on") or "no" end,a=function() sd(8,1-gd(8)) end,w=36},
+  {x=46,y=56,l="click",v=function() return split("no,rec,met")[gd(8)+1] end,a=function(d) sd(8,(gd(8)+d)%3) end,w=36},
   {x=86,y=56,l=tx("modo","mode"),v=function() return mode==1 and tx("cad","song") or "loop" end,a=function() mode=1-mode end,w=40}
  }
  for i=0,15 do
@@ -851,17 +856,27 @@ function mixpage()
    local so=gd(15)\64
    sd(15,gd(15)&63|(so==k+1 and 0 or k+1)<<6) end})
  end
+ -- parlante: el mismo ajuste de
+ -- beats (byte 127 bit 5)
+ local function spk() sd(127,gd(127)^^32) renderall() end
+ add(its,{x=2,y=112,w=56,l=tx("parlante","speaker"),v=function() return gd(127)&32<1 and tx("si","on") or "no" end,a=spk,kk=spk})
  for t in all(its) do t.k=t.kk end
  return ipage(tx("mezcla","mix"),its,function()
   for k=0,2 do print(stn[k+1],6+k*42,46,ef(k)>0 and 6 or 5) end
-  local s=tx("loop ","loop ")..split("a,b,c,d")[ep+1]
+  local s,c=tx("loop ","loop ")..split("a,b,c,d")[ep+1],12
   if (mode==1) s=playing and tx("bloque ","block ")..(curc+1).."/"..gd(7) or tx("cadena","song")
-  print(s,2,108,12)
-  if (nq>1) print(tx("ruido 1/2","noise 1/2"),48,108,8)
-  cpu(96,108)
-  if (pcmok==false) print(tx("sin pcm: usa pico-8 oficial","no pcm: use official pico-8"),2,113,8)
+  if rec and playing then
+   s,c=cnt>0 and tx("conteo...","count-in...") or tx("rec bloque ","rec block ")..(curc+1).."/"..gd(7),8
+  elseif done and done>0 then s,c=tx("listo: corta la grabacion","done: stop recording"),10 end
+  if (pcmok==false) s,c=tx("sin pcm: usa pico-8 oficial","no pcm: use official pico-8"),8
+  print(s,2,105,c)
+  if (nq>1) print(tx("ruido 1/2","noise 1/2"),88,112,8)
+  cpu(96,105)
  end,tx("o+^v:nivel  o:mute/solo","o+^v:level  o:mute/solo"))
 end
+
+-- el estado va en la pagina
+function statusline() end
 
 function fadcell(t,s)
  local l,on=mlv(t.j),ef(t.j)>0

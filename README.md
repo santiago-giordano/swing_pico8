@@ -79,7 +79,7 @@ The drums and the ambience use PICO-8's PCM channel (`serial(0x808)`), which fak
 
 - When a cart starts you pick a song (c1–c8). **Pick the same song in the three carts.**
 - Each song is a single cartdata file, `swingbox_cancionN.p8d.txt`, in PICO-8's `cdata` folder. Back it up or share it to move the whole song.
-- On the **song** page you set BPM, swing, key, scale, arrangement length, count-in click and play mode (loop / song). The arrangement has 16 blocks. Each block picks a beats pattern (top letter) and a keys pattern (bottom letter) and repeats ×1–×8. A part can be muted per block, for breaks.
+- On the **song** page you set BPM, swing, key, scale, arrangement length, click and play mode (loop / song). **click**: *no*; *rec* = one bar of count-in only when you record (the default); *met* = the same count-in plus a metronome on every beat while you play, never in recordings. In swing_keys the metronome shares a channel with the chords, so it can cut the chord's 7th on the beat. The arrangement has 16 blocks. Each block picks a beats pattern (top letter) and a keys pattern (bottom letter) and repeats ×1–×8. A part can be muted per block, for breaks.
 
 ## Groove: Dilla-style timing
 
@@ -109,7 +109,7 @@ Keys and noise follow the song swing; the noise duck follows the kick track's ti
 
 No cart stores audio: each one saves its part of the score (steps, notes, kit, groove, levels) in the song file, and the sound is generated on play. `swing_mix` reads those three parts from the same song and plays them together. PICO-8 runs one cart at a time, so it carries the three engines inside: drums and noise over PCM, keys on the chip channels. Open the same song, press X and it plays the arrangement (or loops pattern A–D in loop mode).
 
-- **mix** page: a fader (O+↑↓), a meter, and **M**ute / **S**olo (tap O) per stem. Levels live in the song file, so they're kept for next time. They only affect swing_mix; the stems you record from each cart stay as they are.
+- **mix** page: a fader (O+↑↓), a meter, and **M**ute / **S**olo (tap O) per stem, plus the **speaker** switch (the same one as in swing_beats: it changes the song's kick for both). Levels live in the song file, so they're kept for next time. They only affect swing_mix; the stems you record from each cart stay as they are.
 - **song** page: tempo, swing, key and mode. The arrangement is read-only here; edit it in beats or keys.
 - *Pause → record mix* records the full mix with the same count-in, if you want a quick bounce through line out.
 - If the CPU stays above ~88 % while playing, the noise drops to half rate for the rest of that play (the mix page shows *noise 1/2*). Drums always stay at full quality.
@@ -159,7 +159,7 @@ python3 tests/screens.py       # screenshots of every page -> docs/
 - CI (GitHub Actions) runs the build check and all tests on every push. Pushing a `v*` tag publishes a release with the carts zip and the matching CHANGELOG entry.
 - `src/core.lua` is shared by the three carts. It has the song storage, sequencer, audio clock, input, pages and lofi palette. Each cart adds its own engine on top.
 - The tests run the carts in [fake-08](https://github.com/jtothebell/fake-08) with a **test-only patch** that adds the PCM channel (`tests/fake08-test.patch`). This lets the harness render the official-PICO-8 sound path to WAV and measure it.
-- Song file layout, 256 bytes: `0` magic, `2` bpm, `3` swing, `4` key, `5` scale, `6` seed, `7` length, `8` click, `16–31` arrangement, `32–127` beats, `128–239` keys, `240–255` noise.
+- Song file layout, 256 bytes: `0` magic, `2` bpm, `3` swing, `4` key, `5` scale, `6` seed, `7` length, `8` click (0 no, 1 count-in, 2 count-in + metronome), `16–31` arrangement, `32–127` beats, `128–239` keys, `240–255` noise.
 
 ### Notes
 

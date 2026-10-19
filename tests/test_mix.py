@@ -90,7 +90,43 @@ def test_record():
     assert abs(err) < 10
 
 
+def test_metronome():
+    """click 2 = metronome while playing, in every cart; click 1 = count-in only"""
+    q = 15 / 90 * 4
+    for cart in ("swing_beats", "swing_keys", "swing_noise", "swing_mix"):
+        res = {}
+        for ck in (1, 2):
+            b = sf.blank(bpm=90, swing=50, click=ck)
+            b[16] = 0
+            b[127] = 128 | 3 << 2   # beats initialized, empty pattern
+            b[239] = 128            # keys initialized, empty pattern
+            b[255] = 128            # noise initialized, all layers at 0
+            b[253] = 5
+            b[14] = 128 | 7 | 7 << 3
+            out = os.path.join(OUT, f"metro_{cart}_{ck}")
+            shutil.rmtree(out, ignore_errors=True)
+            sf.write(os.path.join(out, "sys/cdata/swingbox_cancion1.p8d.txt"), b)
+            R.run(R.cart(cart), out, "w 20;t o;w 30;t x;w 20;wav a;w 300;wavend")
+            x, sr = on.load(os.path.join(out, "a.wav"))
+            x = np.array(x)
+            clk = np.abs(band(x, sr, 500, 2400))
+            ts, t = [], 0
+            thr = max(0.02, 0.25 * clk.max())
+            while True:
+                tk = first(clk, sr, t, thr)
+                if tk >= len(x) / sr - 0.05:
+                    break
+                ts.append(tk)
+                t = tk + 0.2
+            res[ck] = ts if clk.max() > 0.02 else []
+        d = np.diff(res[2])
+        print(f"{cart:12s} metronome: {len(res[2])} clicks, every {np.median(d) * 1000:.0f} ms; count-in mode while playing: {len(res[1])} clicks")
+        assert len(res[2]) >= 6 and abs(np.median(d) - q) < 0.01
+        assert len(res[1]) == 0
+
+
 if __name__ == "__main__":
+    test_metronome()
     test_keys_align()
     test_mute()
     test_record()

@@ -2,6 +2,16 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/). Versions follow [SemVer](https://semver.org/).
 
+## [2.5.0] - 2026-10-19
+
+### Added
+- **click** has a third value, *met*: a metronome on every beat while playing (accent on beat 1), in all four carts. It never sounds in recordings. The values are now *no* / *rec* (count-in when recording, the old *on*) / *met*.
+- **speaker** switch on swing_mix's mix page. It is the swing_beats setting (song byte 127 bit 5), so changing it in either cart changes the kick for both.
+- `test_metronome` in `tests/test_mix.py`: quarter-note clicks while playing with *met*, none with *rec*, in the four carts.
+
+### Changed
+- swing_mix shows the recording status on its own status row instead of the shared one at the bottom.
+
 ## [2.4.0] - 2026-10-18
 
 ### Added
