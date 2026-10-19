@@ -32,32 +32,10 @@ function ef(k)
 end
 
 -- ---- motor beats (pcm) ----
-velg={.35,.65,1}
-tunes={.84,.89,.94,1,1.06,1.12,1.19}
-kits={
-"1500,160,50,90,700,1,.08,80,.5,0,.4,1300,230,185,200,250,.45,.85,500,.6,.3,0,400,900,750,100,70,.6,.35,60,1,1,0,300,0,0,1,1,0,.7,60,1,1,0,1500,0,0,1,1,0,.6,500,.9,1,0",
-"1800,120,44,140,1000,1,.04,60,.3,0,.15,1100,210,180,300,320,.7,.45,380,.35,.1,0,350,700,650,120,90,.8,.2,50,.7,.6,0,260,0,0,1,1,0,.5,50,.6,1,0,1400,0,0,1,1,0,.45,420,.6,1,0",
-"1200,190,58,60,450,1,.15,60,.7,0,.6,1000,250,190,150,200,.35,1,420,.9,.5,.2,300,1300,1100,80,50,.5,.5,40,1,1,.2,260,0,0,1,1,0,.9,45,1,1,.1,1300,0,0,1,1,0,.8,450,1,1,0"}
 vb,vn,vp,vg={},{},{},{}
 lpf,ri,rj,rb,rc=0,1,1,{},{}
 for i=1,337 do rb[i]=0 rc[i]=0 end
 
-function syn(n,f0,f1,pd,ad,ta,na,nd,nc,hp,ck)
- local b,ph,a,an,p,nl,pn={},0,1,1,1,0,0
- local ka,kn,kp=1-.693/ad,1-.693/nd,1-.693/pd
- for i=1,n do
-  ph+=(f1+(f0-f1)*p)/sr
-  local x=rnd(2)-1
-  nl+=(x-nl)*nc
-  local v=sin(ph)*a*ta+(nl*(1-hp)+(nl-pn)*hp*2)*an*na
-  pn=nl
-  if (i<12) v+=x*ck
-  if (i>n-60) v*=(n-i)/60
-  b[i]=v
-  a*=ka an*=kn p*=kp
- end
- return b
-end
 
 function renderall()
  vp={}
@@ -294,15 +272,7 @@ function trig(i,_,s)
  local bp,kk=e&3,e>>2&3
  if (mode==0) bp,kk,e=ep,ep,0
  if e&64==0 then
-  for t=0,4 do
-   local v=fillv(t,s,fg(32+bp*20,t*16+s,2))
-   if v>0 then
-    local o=i+lead+max(-lead,boff(t,s)+hum(t,s))
-    local f=fg(11,t,2)*55.125
-    if (f>0 and v>1) push(max(i,o-f),{h=t+1,v=1})
-    push(o,{h=t+1,v=v})
-   end
-  end
+  drum(i,s,bp)
   if (gd(247)>0 and fg(32+bp*20,s,2)>0) push(i+lead+max(-lead,boff(0,s)),{dk=1})
  end
  if e&128==0 then
@@ -327,7 +297,7 @@ end
 -- lo que tarda el pcm en salir
 function fire(e,i)
  if e.h then
-  vp[e.h],vg[e.h]=1,(gd(117+e.h)&7)/7*velg[e.v]
+  vp[e.h],vg[e.h]=1+trim(e.h-1)*16,(gd(117+e.h)&7)/7*velg[e.v]
   if (e.h==4) vp[5]=nil
  elseif e.r then add(kq,{f=(bl+i)/91.875+.5,r=e.r,v=e.v})
  elseif e.ck then ckn,ckf=120,(e.a and 2200 or 1600)/sr

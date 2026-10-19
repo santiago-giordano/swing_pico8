@@ -269,11 +269,107 @@ def test_keys_reference():
     print("hat energy while recording:", float(np.abs(h).max()))
     assert np.abs(h).max() < 0.02
 
+
+def set_trim(b, t, v):
+    if t < 3:
+        sf.fset(b, 11, 5 + t, 2, v)
+    else:
+        sf.fset(b, 13, t - 2, 2, v)
+
+
+def test_trim():
+    """trim 3 skips the first 48 samples (~8.7 ms) of the drum: the hit's content arrives that much earlier"""
+    xs = {}
+    for tr in (0, 3):
+        b = sf.blank(bpm=90, swing=50)
+        b[16] = 0
+        b[127] = 128 | 3 << 2 | 32      # speaker off: plain kick
+        sf.beats_pattern(b, 0, ["3" + "0" * 15, "0" * 16, "0" * 16, "0" * 16, "0" * 16])
+        sf.beats_params(b, nudge=(0,) * 5)
+        b[127] = 128 | 3 << 2 | 32
+        set_trim(b, 0, tr)
+        out = os.path.join(OUT, f"trim_{tr}")
+        shutil.rmtree(out, ignore_errors=True)
+        sf.write(os.path.join(out, "sys/cdata/swingbox_cancion1.p8d.txt"), b)
+        R.run(R.cart("swing_beats"), out, "w 20;t o;w 20;t x;w 20;wav a;w 100;wavend")
+        x, sr = on.load(os.path.join(out, "a.wav"))
+        xs[tr] = (np.array(x), sr)
+    x0, sr = xs[0]
+    x3, _ = xs[3]
+    i0 = int(np.argmax(np.abs(x0) > 0.05 * np.abs(x0).max()))
+    i3 = int(np.argmax(np.abs(x3) > 0.05 * np.abs(x3).max()))
+    a = x0[i0 - 40:i0 + 800]
+    best, bl = -1, 0
+    for lag in range(-400, 100):
+        seg = x3[i0 - 40 + lag:i0 + 800 + lag]
+        if len(seg) != len(a) or lag + i0 - 40 < 0:
+            continue
+        c = float(np.dot(a, seg) / (np.linalg.norm(a) * np.linalg.norm(seg) + 1e-9))
+        if c > best:
+            best, bl = c, lag
+    ms = bl / sr * 1000
+    print(f"trim 3: content arrives {ms:+.1f} ms (expected -8.7), correlation {best:.2f}")
+    assert -10.5 < ms < -7 and best > 0.8
+
+
+def test_poly():
+    """hat on a triplet grid (12 cells per bar) against a straight kick"""
+    step = 15 / 90
+    for code, n in ((0, 12), (1, 10)):
+        b = sf.blank(bpm=90, swing=50)
+        b[16] = 0
+        b[1] = 1 | 4 << 3 | code << 6          # poly track 4 (hat), grid code
+        row = "2" * 5 + "0" * (16 - 5)
+        sf.beats_pattern(b, 0, ["0" * 16, "0" * 16, "0" * 16, row, "0" * 16])
+        sf.beats_params(b, nudge=(0,) * 5)
+        out = os.path.join(OUT, f"poly_{n}")
+        shutil.rmtree(out, ignore_errors=True)
+        sf.write(os.path.join(out, "sys/cdata/swingbox_cancion1.p8d.txt"), b)
+        R.run(R.cart("swing_beats"), out, "w 20;t o;w 20;t x;w 20;wav a;w 300;wavend")
+        x, sr = on.load(os.path.join(out, "a.wav"))
+        x = np.array(x)
+        hat = band(x, sr, 2500, 2750)
+        th = 0.4 * np.abs(hat).max()
+        ts, t = [], 0
+        while len(ts) < 5:
+            h = first(hat, sr, t, th)
+            if h >= len(x) / sr - 0.01:
+                break
+            ts.append(h)
+            t = h + 0.05
+        d = np.diff(ts) * 1000
+        exp = 16 * step / n * 1000
+        print(f"poly {n}: hat gaps (ms) {np.round(d, 1)} expected {exp:.1f}")
+        assert len(d) >= 3 and np.all(np.abs(d - exp) < 2.5)
+
+
+def test_boom_kit():
+    """kit 4 (boom bap) loads and sounds: kick and snare at least as present as dusty above 150 Hz, no clipping"""
+    pk = {}
+    for kit in (0, 3):
+        b = sf.blank(bpm=90, swing=50)
+        b[16] = 0
+        sf.beats_pattern(b, 0, ["3000000000000000", "0000300000000000", "0" * 16, "0" * 16, "0" * 16])
+        sf.beats_params(b, nudge=(0,) * 5, kit=kit)
+        out = os.path.join(OUT, f"kit_{kit}")
+        shutil.rmtree(out, ignore_errors=True)
+        sf.write(os.path.join(out, "sys/cdata/swingbox_cancion1.p8d.txt"), b)
+        R.run(R.cart("swing_beats"), out, "w 20;t o;w 20;t x;w 10;wav a;w 200;wavend")
+        x, sr = on.load(os.path.join(out, "a.wav"))
+        x = np.array(x)
+        mid = band(x, sr, 150, 2000)
+        pk[kit] = (float(np.abs(x).max()), float(np.sqrt(np.mean(mid ** 2))))
+    print("peak / mid rms (dusty, boom):", {k: tuple(round(v, 3) for v in t) for k, t in pk.items()})
+    assert pk[3][0] < 0.99 and pk[3][1] >= pk[0][1] * 0.9
+
 if __name__ == "__main__":
     test_bass_speaker()
     test_fill()
     test_duplicate()
     test_keys_reference()
+    test_trim()
+    test_poly()
+    test_boom_kit()
     test_metronome()
     test_keys_align()
     test_mute()

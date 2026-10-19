@@ -2,6 +2,18 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/). Versions follow [SemVer](https://semver.org/).
 
+## [2.8.0] - 2026-10-19
+
+### Added
+- **boom** kit (4th) in swing_beats: punchier kick and snare in the mids, tuned to read on a handheld speaker.
+- **trim** per track on the kit page (0–3, about 3 ms per step): skips the first part of each hit so the attack lands earlier and tighter. Stored in song bytes 12 (bits 2–7) and 13 (bits 2–5).
+- **poly** on the song page of swing_beats and swing_mix: one track per song runs on its own grid of 12, 10, 14 or 8 cells per bar (eighth-note triplets, quintuplets, septuplets, eighths) against the straight 16 of the others, with sample-accurate timing. The pattern page draws that row with fewer, wider cells. Song byte 1 bits 3–7. Swing, groove templates and fill do not apply to that track; nudge and humanization do.
+- Tests: trim shifts the content by 8.5 ms, poly grid spacing (222 ms and 267 ms at 90 BPM), boom kit levels.
+
+### Changed
+- Kits, tuning table and the drum synthesizer moved to the shared core (they were duplicated in beats, keys and mix).
+- Song byte 13 bit 0 is the swing base; the other bits are trim.
+
 ## [2.7.0] - 2026-10-19
 
 ### Added

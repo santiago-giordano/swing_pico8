@@ -8,7 +8,7 @@ Four PICO-8 carts for making and recording **lofi beats in stems**, built for ha
 
 | Cart | What it does |
 |---|---|
-| `swing_beats.p8` | Drums over PCM: 5 tracks, sample-accurate swing (MPC and Dilla-style per-track grooves), per-track nudge, 3 kits, tone/drive/room/crush |
+| `swing_beats.p8` | Drums over PCM: 5 tracks, sample-accurate swing (MPC and Dilla-style per-track grooves), per-track nudge, 4 kits, per-track start trim, one polyrhythmic track, tone/drive/room/crush |
 | `swing_keys.p8` | Bass, lead and chords written as scale degrees; per-instrument reverb, filter, detune, tape wobble, tempo-synced echo |
 | `swing_noise.p8` | Ambience over PCM: vinyl, tape, rain, fire, sea, night; presets, kick-synced ducking, fades, needle drop/lift |
 | `swing_mix.p8` | Plays the three parts together to hear the whole song, with level, mute and solo per stem; can also record the mix |
@@ -80,7 +80,7 @@ The drums and the ambience use PICO-8's PCM channel (`serial(0x808)`), which fak
 
 - When a cart starts you pick a song (c1–c8). **Pick the same song in the three carts.**
 - Each song is a single cartdata file, `swingbox_cancionN.p8d.txt`, in PICO-8's `cdata` folder. Back it up or share it to move the whole song.
-- On the **song** page you set BPM, swing, key, scale, arrangement length, click and play mode (loop / song). **click**: *no*; *rec* = one bar of count-in only when you record (the default); *met* = the same count-in plus a metronome on every beat while you play, never in recordings. In swing_keys the metronome shares a channel with the chords, so it can cut the chord's 7th on the beat. The arrangement has 16 blocks. Each block picks a beats pattern (top letter) and a keys pattern (bottom letter) and repeats ×1–×8. A part can be muted per block, for breaks. **fill** (swing_beats and swing_mix): on the last bar of every block that repeats ×2 or more, add an open hat on step 16 (*hat*), a snare roll on steps 13–16 (*snare*) or both; it also shows up in the recordings, and blocks that play once never get one. **ref drm** (swing_keys): plays the song's drums under the keys while you play, so you can write against the groove. It switches off while recording, so the keys stem stays clean; keys notes are delayed by the PCM latency (~100 ms) to stay in time with the drums, which needs the official PICO-8 (it does nothing on fake-08).
+- On the **song** page you set BPM, swing, key, scale, arrangement length, click and play mode (loop / song). **click**: *no*; *rec* = one bar of count-in only when you record (the default); *met* = the same count-in plus a metronome on every beat while you play, never in recordings. In swing_keys the metronome shares a channel with the chords, so it can cut the chord's 7th on the beat. The arrangement has 16 blocks. Each block picks a beats pattern (top letter) and a keys pattern (bottom letter) and repeats ×1–×8. A part can be muted per block, for breaks. **fill** (swing_beats and swing_mix): on the last bar of every block that repeats ×2 or more, add an open hat on step 16 (*hat*), a snare roll on steps 13–16 (*snare*) or both; it also shows up in the recordings, and blocks that play once never get one. **poly** (swing_beats and swing_mix): one track per song (k, s, r, h or o) runs on its own grid of 12 (eighth-note triplets), 10 (eighth-note quintuplets), 14 (eighth-note septuplets) or 8 cells per bar, against the straight 16 of the others. O+←→ picks the track, O+↑↓ the grid. On the pattern page that row shows fewer, wider cells. Nudge and humanization still apply; swing, groove templates and fill do not. **ref drm** (swing_keys): plays the song's drums under the keys while you play, so you can write against the groove. It switches off while recording, so the keys stem stays clean; keys notes are delayed by the PCM latency (~100 ms) to stay in time with the drums, which needs the official PICO-8 (it does nothing on fake-08).
 
 ## Groove: Dilla-style timing
 
@@ -122,7 +122,7 @@ No cart stores audio: each one saves its part of the score (steps, notes, kit, g
 
 - **pattern**: kik / snr / rim / hat / opn, 16 steps, velocities ghost / mid / hard. O+←→ rotates the row.
 - **groove** (Dilla-style microtiming, see below): song swing 50–75% on a 16th or 8th base, per-track swing, per-track nudge −64…+60 ms, flam, level, 8 groove templates/presets, phrase drift and three humanize modes.
-- **kit**: dusty / soft / tape kits (synthesized at load), tune, tone (low-pass), drive, room, crush. Also an engine switch (pcm / chip), a **speaker** switch and a CPU meter.
+- **kit**: dusty / soft / tape / boom kits (synthesized at load; *boom* has a punchier kick and snare in the mids), tune, tone (low-pass), drive, room, crush. Also an engine switch (pcm / chip), a **speaker** switch and a CPU meter. **trim** (one value per track, 0–3, about 3 ms per step) skips the first part of the sound, so the attack lands earlier and tighter; use it with nudge to place sounds with a soft attack.
 - Stopping always ends in silence: once the voices and the room tail have died out the room buffers are cleared.
 - **speaker** (on by default) adds a short mid-range knock and saturation to the kick, so it still reads as a kick on a handheld's small speaker, which can't play its 50–160 Hz body. Turn it off for a rounder kick on headphones or line out.
 - The PCM engine schedules hits at sample level (5512.5 Hz): measured swing and nudge error is under 1 ms.
@@ -161,7 +161,7 @@ python3 tests/screens.py       # screenshots of every page -> docs/
 - CI (GitHub Actions) runs the build check and all tests on every push. Pushing a `v*` tag publishes a release with the carts zip and the matching CHANGELOG entry.
 - `src/core.lua` is shared by the three carts. It has the song storage, sequencer, audio clock, input, pages and lofi palette. Each cart adds its own engine on top.
 - The tests run the carts in [fake-08](https://github.com/jtothebell/fake-08) with a **test-only patch** that adds the PCM channel (`tests/fake08-test.patch`). This lets the harness render the official-PICO-8 sound path to WAV and measure it.
-- Song file layout, 256 bytes: `0` magic, `2` bpm, `3` swing, `4` key, `5` scale, `6` seed, `7` length, `8` click (0 no, 1 count-in, 2 count-in + metronome), `16–31` arrangement, `32–127` beats, `128–239` keys (byte 239: bits 0–1 echo, 2 slow chords, 5 bass speaker (0 = on), 6 drum reference, 7 initialised), `1` bits 1–2 fill, `240–255` noise.
+- Song file layout, 256 bytes: `0` magic, `2` bpm, `3` swing, `4` key, `5` scale, `6` seed, `7` length, `8` click (0 no, 1 count-in, 2 count-in + metronome), `16–31` arrangement, `32–127` beats, `128–239` keys (byte 239: bits 0–1 echo, 2 slow chords, 5 bass speaker (0 = on), 6 drum reference, 7 initialised), `1` bits 1–2 fill, bits 3–5 poly track (0 none, 1–5), bits 6–7 poly grid; `12` bits 2–7 and `13` bits 2–5 trim (2 bits per track), `13` bit 0 swing base, `240–255` noise.
 
 ### Notes
 

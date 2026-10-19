@@ -8,7 +8,7 @@ Cuatro cartuchos de PICO-8 para armar y grabar **lofi por stems**, pensados para
 
 | Cartucho | Qué hace |
 |---|---|
-| `swing_beats.p8` | Batería por PCM: 5 pistas, swing con precisión de muestra (estilo MPC y grooves por pista estilo Dilla), nudge por pista, 3 kits, color, saturación, sala y crush |
+| `swing_beats.p8` | Batería por PCM: 5 pistas, swing con precisión de muestra (estilo MPC y grooves por pista estilo Dilla), nudge por pista, 4 kits, recorte de inicio por pista, una pista polirrítmica, color, saturación, sala y crush |
 | `swing_keys.p8` | Bajo, lead y acordes por grados de la escala, con reverb, filtro, detune, wobble y eco sincronizado por instrumento |
 | `swing_noise.p8` | Ambiente por PCM: vinilo, cinta, lluvia, fuego, mar y noche, con presets, ducking con el bombo, fades y aguja de vinilo |
 | `swing_mix.p8` | Reproduce las tres partes juntas para escuchar la canción completa, con nivel, mute y solo por stem; también graba la mezcla |
@@ -80,7 +80,7 @@ La batería y los ruidos usan el canal PCM de PICO-8 (`serial(0x808)`), que fake
 
 - Al abrir un cartucho elegís la canción, de c1 a c8. **Elegí la misma en los tres.**
 - Cada canción es un archivo de cartdata, `swingbox_cancionN.p8d.txt`, en la carpeta `cdata` de PICO-8. Copiando ese archivo respaldás o compartís la canción entera.
-- En la página **canción** se configuran BPM, swing, tono, escala, largo del arreglo, click y modo (loop o cadena). **click**: *no*; *rec* = un compás de conteo solo al grabar (por defecto); *met* = el mismo conteo más un metrónomo en cada tiempo mientras tocás, nunca en la grabación. En swing_keys el metrónomo comparte canal con los acordes, así que puede cortar la 7.ª del acorde en cada tiempo. El arreglo tiene 16 bloques. Cada bloque elige un patrón de beats (letra de arriba) y uno de keys (letra de abajo), y se repite de ×1 a ×8. Cada parte se puede silenciar por bloque para hacer breaks. **relleno** (swing_beats y swing_mix): en el último compás de cada bloque que se repite ×2 o más suma un hat abierto en el paso 16 (*hat*), un redoble de caja en los pasos 13–16 (*caja*) o ambos; también queda en las grabaciones, y los bloques que suenan una vez no llevan relleno. **ref bat** (swing_keys): hace sonar la batería de la canción debajo de las teclas mientras tocás, para escribir contra el groove. Se apaga al grabar, así el stem de keys queda limpio; las notas de keys se demoran lo que tarda el PCM (~100 ms) para quedar a tiempo con la batería, y necesita el PICO-8 oficial (en fake-08 no hace nada).
+- En la página **canción** se configuran BPM, swing, tono, escala, largo del arreglo, click y modo (loop o cadena). **click**: *no*; *rec* = un compás de conteo solo al grabar (por defecto); *met* = el mismo conteo más un metrónomo en cada tiempo mientras tocás, nunca en la grabación. En swing_keys el metrónomo comparte canal con los acordes, así que puede cortar la 7.ª del acorde en cada tiempo. El arreglo tiene 16 bloques. Cada bloque elige un patrón de beats (letra de arriba) y uno de keys (letra de abajo), y se repite de ×1 a ×8. Cada parte se puede silenciar por bloque para hacer breaks. **relleno** (swing_beats y swing_mix): en el último compás de cada bloque que se repite ×2 o más suma un hat abierto en el paso 16 (*hat*), un redoble de caja en los pasos 13–16 (*caja*) o ambos; también queda en las grabaciones, y los bloques que suenan una vez no llevan relleno. **poli** (swing_beats y swing_mix): una pista por canción (k, s, r, h u o) corre en su propia grilla de 12 (tresillos de corchea), 10 (quintillos de corchea), 14 (septillos de corchea) u 8 celdas por compás, contra las 16 rectas de las demás. O+←→ elige la pista, O+↑↓ la grilla. En la página patrón esa fila muestra menos celdas, más anchas. El nudge y la humanización siguen valiendo; el swing, los templates de groove y el relleno no. **ref bat** (swing_keys): hace sonar la batería de la canción debajo de las teclas mientras tocás, para escribir contra el groove. Se apaga al grabar, así el stem de keys queda limpio; las notas de keys se demoran lo que tarda el PCM (~100 ms) para quedar a tiempo con la batería, y necesita el PICO-8 oficial (en fake-08 no hace nada).
 
 ## Groove: timing estilo Dilla
 
@@ -99,6 +99,8 @@ El feel "borracho" de J Dilla sale de que cada voz de la batería va en su propi
 Templates: ninguno, get dis (backbeat −4/48 y dos hats tarde), septillo (backbeat −1/64), 5/192 (snare 5/192 de compás antes, ≈ 69 ms a 90 BPM), quint (hats +0,4 paso), áureo, apurado (snare −1/4 de paso) y borracho. Son puntos de partida para escuchar, no valores medidos de Dilla.
 
 Keys y noise siguen el swing de la canción; el ducking de noise sigue el timing de la pista de bombo. En keys el nudge por instrumento va de −64 a +60 ms (sirve para un bajo atrás del beat).
+
+La página **kit** de swing_beats tiene cuatro kits (polvo, suave, cinta y boom, este último con bombo y caja más pegadores en medios), afinación, color, saturación, sala y crush. **trim** (un valor por pista, 0–3, unos 3 ms por paso) salta el comienzo del sonido, así el ataque cae antes y más seco; sirve junto con el nudge para ubicar sonidos de ataque blando.
 
 ## Grabar por la salida de línea
 

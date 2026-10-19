@@ -13,7 +13,10 @@ __lua__
 -- 32-127 beats 128-239 keys
 -- 9 groove 10 deriva 11-12 flam
 -- 13 base swing (0=16, 1=8)
--- 1: b0 version, b1-2 relleno
+-- 1: b0 version, b1-2 relleno,
+-- b3-5 pista poli, b6-7 grilla poli
+-- 12 b2-7 y 13 b2-5: recorte de
+-- inicio por pista (2 bits)
 -- 240-255 noise
 dd=0x5e00
 sr=5512.5
@@ -54,6 +57,68 @@ function fillv(t,s,v)
  return v
 end
 
+-- recorte de inicio de la pista t
+-- (0-3, x3 ms): salta el comienzo
+function trim(t)
+ return t<3 and fg(11,5+t,2) or fg(13,t-2,2)
+end
+function settrim(t,v)
+ if t<3 then fs(11,5+t,2,v) else fs(13,t-2,2,v) end
+end
+
+-- eventos de bateria del paso s del
+-- patron bp. una pista (poli) corre
+-- en su grilla de n celdas por compas
+polyn={12,10,14,8}
+function drum(i,s,bp)
+ local pt,n=(gd(1)>>3&7)-1,polyn[gd(1)\64+1]
+ for t=0,4 do
+  local ly=t==pt
+  for k=ly and 0 or s,ly and n-1 or s do
+   local q=ly and k*16/n or s
+   if flr(q)==s then
+    local v=fg(32+bp*20,t*16+k,2)
+    if (not ly) v=fillv(t,s,v)
+    if v>0 then
+     local o=i+lead+max(-lead,(ly and (q-s)*steplen()+sgd(112+t)*5.5125 or boff(t,s))+hum(t,k))
+     local f=fg(11,t,2)*55.125
+     if (f>0 and v>1) push(max(i,o-f),{h=t+1,v=1})
+     push(o,{h=t+1,v=v})
+    end
+   end
+  end
+ end
+end
+
+-- ---- kits de bateria ----
+-- por pista: largo,f0,f1,caida
+-- tono,caida amp,tono,ruido,
+-- caida ruido,filtro,brillo,click
+velg={.35,.65,1}
+tunes={.84,.89,.94,1,1.06,1.12,1.19}
+kits={
+"1500,160,50,90,700,1,.08,80,.5,0,.4,1300,230,185,200,250,.45,.85,500,.6,.3,0,400,900,750,100,70,.6,.35,60,1,1,0,300,0,0,1,1,0,.7,60,1,1,0,1500,0,0,1,1,0,.6,500,.9,1,0",
+"1800,120,44,140,1000,1,.04,60,.3,0,.15,1100,210,180,300,320,.7,.45,380,.35,.1,0,350,700,650,120,90,.8,.2,50,.7,.6,0,260,0,0,1,1,0,.5,50,.6,1,0,1400,0,0,1,1,0,.45,420,.6,1,0",
+"1200,190,58,60,450,1,.15,60,.7,0,.6,1000,250,190,150,200,.35,1,420,.9,.5,.2,300,1300,1100,80,50,.5,.5,40,1,1,.2,260,0,0,1,1,0,.9,45,1,1,.1,1300,0,0,1,1,0,.8,450,1,1,0",
+"1700,200,58,70,900,1,.12,60,.5,0,.7,1500,260,200,180,300,.5,1,600,.7,.25,.2,350,1100,900,80,60,.7,.3,50,1,1,0,260,0,0,1,1,0,.8,45,1,1,0,1300,0,0,1,1,0,.7,420,.9,1,0"}
+
+function syn(n,f0,f1,pd,ad,ta,na,nd,nc,hp,ck)
+ local b,ph,a,an,p,nl,pn={},0,1,1,1,0,0
+ local ka,kn,kp=1-.693/ad,1-.693/nd,1-.693/pd
+ for i=1,n do
+  ph+=(f1+(f0-f1)*p)/sr
+  local x=rnd(2)-1
+  nl+=(x-nl)*nc
+  local v=sin(ph)*a*ta+(nl*(1-hp)+(nl-pn)*hp*2)*an*na
+  pn=nl
+  if (i<12) v+=x*ck
+  if (i>n-60) v*=(n-i)/60
+  b[i]=v
+  a*=ka an*=kn p*=kp
+ end
+ return b
+end
+
 -- ---- cancion ----
 function opensong(n)
  song=n
@@ -91,7 +156,7 @@ function steplen() return sr/gd(2)*15 end
 -- corchea debil (0,k,2k,k)
 function swo(w,s)
  local k,q=(w-50)/50*steplen(),s%4
- if gd(13)>0 then
+ if gd(13)&1>0 then
   return (q==2 and 2 or q%2)*k
  end
  return s%2*k
@@ -384,7 +449,18 @@ function songpage()
  if fills then
   add(its,{x=2,y=64,l=tx("relleno","fill"),w=60,
    v=function() return split(tx("no,hat,caja,ambos","none,hat,snare,both"))[(gd(1)>>1&3)+1] end,
-   a=function(d) sd(1,1|(((gd(1)>>1&3)+d)%4)<<1) end})
+   a=function(d) sd(1,gd(1)&0xf9|(((gd(1)>>1&3)+d)%4)<<1) end})
+  add(its,{x=66,y=64,l="poly",w=60,
+   v=function()
+    local t=gd(1)>>3&7
+    return t>0 and split("k,s,r,h,o")[t].." "..polyn[gd(1)\64+1] or "--"
+   end,
+   a=function(_,dx,dy)
+    local f=gd(1)
+    if (dx~=0) f=f&0xc7|(((f>>3&7)+dx)%6)<<3
+    if (dy~=0) f=f&0x3f|mid(0,3,f\64+dy)<<6
+    sd(1,f)
+   end})
  end
  if refd then
   add(its,{x=2,y=64,l=tx("ref bat","ref drm"),w=60,
@@ -693,31 +769,9 @@ pl={}
 -- al tocar (no al grabar) suena abajo
 -- la bateria de beats. las teclas por
 -- chip se demoran lo que tarda el pcm
-velg={.35,.65,1}
-tunes={.84,.89,.94,1,1.06,1.12,1.19}
-kits={
-"1500,160,50,90,700,1,.08,80,.5,0,.4,1300,230,185,200,250,.45,.85,500,.6,.3,0,400,900,750,100,70,.6,.35,60,1,1,0,300,0,0,1,1,0,.7,60,1,1,0,1500,0,0,1,1,0,.6,500,.9,1,0",
-"1800,120,44,140,1000,1,.04,60,.3,0,.15,1100,210,180,300,320,.7,.45,380,.35,.1,0,350,700,650,120,90,.8,.2,50,.7,.6,0,260,0,0,1,1,0,.5,50,.6,1,0,1400,0,0,1,1,0,.45,420,.6,1,0",
-"1200,190,58,60,450,1,.15,60,.7,0,.6,1000,250,190,150,200,.35,1,420,.9,.5,.2,300,1300,1100,80,50,.5,.5,40,1,1,.2,260,0,0,1,1,0,.9,45,1,1,.1,1300,0,0,1,1,0,.8,450,1,1,0"}
 vb,vn,vp,vg,kq={},{},{},{},{}
 lpf,idl,rmode=0,0,false
 
-function syn(n,f0,f1,pd,ad,ta,na,nd,nc,hp,ck)
- local b,ph,a,an,p,nl,pn={},0,1,1,1,0,0
- local ka,kn,kp=1-.693/ad,1-.693/nd,1-.693/pd
- for i=1,n do
-  ph+=(f1+(f0-f1)*p)/sr
-  local x=rnd(2)-1
-  nl+=(x-nl)*nc
-  local v=sin(ph)*a*ta+(nl*(1-hp)+(nl-pn)*hp*2)*an*na
-  pn=nl
-  if (i<12) v+=x*ck
-  if (i>n-60) v*=(n-i)/60
-  b[i]=v
-  a*=ka an*=kn p*=kp
- end
- return b
-end
 
 function rend(t)
  local k=split(kits[gd(123)+1])
@@ -761,17 +815,7 @@ end
 
 function trigd(i,s)
  local e=gd(16+ci)
- if mode==1 and e&64>0 then return end
- local bp=mode==0 and ep or e&3
- for t=0,4 do
-  local v=fillv(t,s,fg(32+bp*20,t*16+s,2))
-  if v>0 then
-   local o=i+lead+max(-lead,boff(t,s)+hum(t,s))
-   local f=fg(11,t,2)*55.125
-   if (f>0 and v>1) push(max(i,o-f),{h=t+1,v=1})
-   push(o,{h=t+1,v=v})
-  end
- end
+ if (mode==0 or e&64==0) drum(i,s,mode==0 and ep or e&3)
 end
 
 -- ---- secuencia ----
@@ -788,7 +832,7 @@ end
 function fire(e,i)
  if not rmode then fire0(e)
  elseif e.h then
-  vp[e.h],vg[e.h]=1,(gd(117+e.h)&7)/7*velg[e.v]
+  vp[e.h],vg[e.h]=1+trim(e.h-1)*16,(gd(117+e.h)&7)/7*velg[e.v]
   if (e.h==4) vp[5]=nil
  else add(kq,{f=(bl+i)/91.875+.5,e=e}) end
 end
