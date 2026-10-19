@@ -22,7 +22,7 @@ import run as R, songfile as sf
 OUT = os.path.join(ROOT, "knulli")
 WORK = os.path.join(R.WORK, "media")
 FPS, SECS, SCALE = 30, 16, 4
-CARTS = ("swing_beats", "swing_keys", "swing_noise")
+CARTS = ("swing_beats", "swing_keys", "swing_noise", "swing_mix")
 # a groove preset worth showing: "borracho" / drunk (see src/beats.lua gpre)
 DRUNK = "AAAHH02000511"
 
@@ -35,6 +35,10 @@ META = {
         "es": ("Swing Keys", "Bajo, lead y acordes por grados de la escala, con cuatriadas diatónicas, reverb, filtro, detune, wobble de cinta y eco sincronizado. Comparte la canción con swing_beats y swing_noise."),
         "en": ("Swing Keys", "Bass, lead and chords written as scale degrees, with diatonic 7th chords, reverb, filter, detune, tape wobble and tempo-synced echo. Shares the song with swing_beats and swing_noise."),
     },
+    "swing_mix": {
+        "es": ("Swing Mix", "Escuchá la canción completa: reproduce juntos la batería, las teclas y el ruido de swing_beats, swing_keys y swing_noise, con nivel, mute y solo por stem. También graba la mezcla con click de conteo."),
+        "en": ("Swing Mix", "Hear the whole song: plays the drums, keys and noise of swing_beats, swing_keys and swing_noise together, with level, mute and solo per stem. Can also record the mix with a click count-in."),
+    },
     "swing_noise": {
         "es": ("Swing Noise", "Ambiente lofi por PCM: vinilo, cinta, lluvia, fuego, mar y noche, con presets, ducking con el bombo, fades y aguja de vinilo. Comparte la canción con swing_beats y swing_keys."),
         "en": ("Swing Noise", "Lofi ambience over PCM: vinyl, tape, rain, fire, sea and night, with presets, kick-synced ducking, fades and needle drop. Shares the song with swing_beats and swing_keys."),
@@ -46,7 +50,7 @@ def song():
     """default song written by the three carts, with the drunk groove applied"""
     d = os.path.join(WORK, "init")
     if not os.path.exists(d):
-        for c in CARTS:
+        for c in CARTS[:3]:
             R.run(R.cart(c), d, "w 20;t o;w 70")
     b = sf.read(os.path.join(d, "sys/cdata/swingbox_cancion1.p8d.txt"))
     b[9] = 7

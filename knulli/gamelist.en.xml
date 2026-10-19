@@ -42,4 +42,18 @@
 		<players>1</players>
 		<lang>en</lang>
 	</game>
+	<game>
+		<path>./swing_mix.p8</path>
+		<name>Swing Mix</name>
+		<desc>Hear the whole song: plays the drums, keys and noise of swing_beats, swing_keys and swing_noise together, with level, mute and solo per stem. Can also record the mix with a click count-in.</desc>
+		<image>./images/swing_mix-image.png</image>
+		<thumbnail>./images/swing_mix-thumb.png</thumbnail>
+		<video>./videos/swing_mix-video.mp4</video>
+		<releasedate>20261018T000000</releasedate>
+		<developer>Santiago Giordano</developer>
+		<publisher>Santiago Giordano</publisher>
+		<genre>Music</genre>
+		<players>1</players>
+		<lang>en</lang>
+	</game>
 </gameList>

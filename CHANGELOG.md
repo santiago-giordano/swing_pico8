@@ -2,6 +2,13 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/). Versions follow [SemVer](https://semver.org/).
 
+## [2.4.0] - 2026-10-18
+
+### Added
+- `swing_mix.p8`, a fourth cart to hear the whole song: it carries the three engines (drums and noise over PCM, keys on the chip channels) and plays the arrangement or loops a pattern. Per-stem level, mute and solo, stored in song bytes 14–15; meters; *Pause → record mix* with the count-in. If CPU stays above ~88 % the noise drops to half rate until the next stop.
+- `tests/test_mix.py`: keys vs drums alignment inside the mix (within one frame), mute/solo, and record-mix count-in.
+- swing_mix in the Knulli gamelists, images and video, the page contact sheets and the itch kit.
+
 ## [2.3.0] - 2026-10-18
 
 ### Fixed

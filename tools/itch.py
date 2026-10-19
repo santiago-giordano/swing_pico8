@@ -35,7 +35,7 @@ def cover():
 
 def shots():
     os.makedirs(os.path.join(OUT, "screenshots"), exist_ok=True)
-    for c in CARTS:
+    for c in CARTS + ("swing_mix",):
         Image.open(os.path.join(IMG, f"{c}-image.png")).save(os.path.join(OUT, "screenshots", f"{c}.png"))
     Image.open(os.path.join(ROOT, "docs", "pages_en.png")).save(os.path.join(OUT, "screenshots", "all_pages.png"))
 

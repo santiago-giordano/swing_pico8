@@ -1,6 +1,6 @@
 # Swing PICO-8
 
-**Lofi beats with J Dilla–style swing, made on a handheld. Three PICO-8 carts that record stems for your DAW.**
+**Lofi beats with J Dilla–style swing, made on a handheld. Four PICO-8 carts that record stems for your DAW.**
 
 ## Short description (tagline, max ~100 chars)
 
@@ -8,13 +8,14 @@ Lofi beat-making with Dilla swing for PICO-8: drums, keys and noise that record 
 
 ## Page text (paste into the description field)
 
-Swing PICO-8 is a small lofi studio in three PICO-8 carts:
+Swing PICO-8 is a small lofi studio in four PICO-8 carts:
 
 - **Swing Beats**: drums. 5 tracks × 16 steps, 3 velocities per step, 3 kits (dust, soft, tape).
 - **Swing Keys**: bass, lead and chords written as scale degrees, with diatonic 7th chords, reverb, filter, detune, tape wobble and a tempo-synced echo.
 - **Swing Noise**: vinyl, tape, rain, fire, sea and night textures, with kick-synced ducking, fades and a vinyl needle drop.
+- **Swing Mix**: plays the three together so you hear the whole song, with level, mute and solo per stem.
 
-All three share the same song (8 slots), so tempo, swing, key, scale and arrangement stay in sync. Each cart records its own stem with a count-in click: line-out into your interface, align the three takes on the first click, done.
+All four share the same song (8 slots), so tempo, swing, key, scale and arrangement stay in sync. Each cart records its own stem with a count-in click: line-out into your interface, align the three takes on the first click, done.
 
 ### The groove is the point
 
@@ -39,7 +40,7 @@ Built and tested for the **Anbernic RG CubeXX** running Knulli. Drums sit at abo
 
 ### What's in the download
 
-- `es/` and `en/`: the three carts (Spanish and English; language can also be switched in-cart with X)
+- `es/` and `en/`: the four carts (Spanish and English; language can also be switched in-cart with X)
 - `knulli/`: images, 16 s preview videos and `gamelist.xml` so the carts show up with art and descriptions in EmulationStation (Knulli, Batocera, ROCKNIX)
 - README and license (MIT)
 

@@ -4,15 +4,16 @@
 
 *[Leer en español](README.es.md)*
 
-Three PICO-8 carts for making and recording **lofi beats in stems**, built for handhelds (tested layout: Anbernic RG CubeXX, 1:1 screen):
+Four PICO-8 carts for making and recording **lofi beats in stems**, built for handhelds (tested layout: Anbernic RG CubeXX, 1:1 screen):
 
 | Cart | What it does |
 |---|---|
 | `swing_beats.p8` | Drums over PCM: 5 tracks, sample-accurate swing (MPC and Dilla-style per-track grooves), per-track nudge, 3 kits, tone/drive/room/crush |
 | `swing_keys.p8` | Bass, lead and chords written as scale degrees; per-instrument reverb, filter, detune, tape wobble, tempo-synced echo |
 | `swing_noise.p8` | Ambience over PCM: vinyl, tape, rain, fire, sea, night; presets, kick-synced ducking, fades, needle drop/lift |
+| `swing_mix.p8` | Plays the three parts together to hear the whole song, with level, mute and solo per stem; can also record the mix |
 
-All three share one **song file**: tempo, swing, key, scale and the arrangement. Each cart records its own stem, starting with a 1-bar click count-in, so the takes line up in your DAW.
+All four share one **song file**: tempo, swing, key, scale and the arrangement. Each cart records its own stem, starting with a 1-bar click count-in, so the takes line up in your DAW.
 
 ![the three carts](docs/swing_lofi.png)
 
@@ -103,6 +104,16 @@ Keys and noise follow the song swing; the noise duck follows the kick track's ti
 1. Plug the headphone out into your interface or recorder.
 2. In each cart choose *Pause → record song*. You get one bar of clicks (the first one is higher), then the arrangement plays once and stops.
 3. Line the three takes up on the first click and cut the count-in. Humanize uses a per-song seed, so every take plays the same.
+
+## Hearing everything together: swing_mix
+
+PICO-8 runs one cart at a time, so `swing_mix` carries the three engines inside: drums and noise over PCM, keys on the chip channels. Open the same song, press X and it plays the arrangement (or loops pattern A–D in loop mode).
+
+- **mix** page: a fader (O+↑↓), a meter, and **M**ute / **S**olo (tap O) per stem. Levels live in the song file, so they're kept for next time. They only affect swing_mix; the stems you record from each cart stay as they are.
+- **song** page: tempo, swing, key and mode. The arrangement is read-only here; edit it in beats or keys.
+- *Pause → record mix* records the full mix with the same count-in, if you want a quick bounce through line out.
+- If the CPU stays above ~88 % while playing, the noise drops to half rate for the rest of that play (the mix page shows *noise 1/2*). Drums always stay at full quality.
+- Keys fire once per frame, so in the mix they can land up to a frame (~16 ms) off the drums. The recorded stems are unaffected. In *rand* and *smooth* humanize modes the mix draws different micro-offsets than the stems, with the same character; *lock* mode matches exactly.
 
 ## The carts in detail
 

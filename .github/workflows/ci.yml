@@ -30,4 +30,5 @@ jobs:
           python3 tests/test_groove.py
           python3 tests/test_sync.py
           python3 tests/test_live_edit.py
+          python3 tests/test_mix.py
           python3 tests/screens.py

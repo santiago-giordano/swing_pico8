@@ -7,6 +7,7 @@ CARTS = {
     "swing_beats": ["core.lua", "beats.lua"],
     "swing_keys": ["core.lua", "keys.lua"],
     "swing_noise": ["core.lua", "noise.lua"],
+    "swing_mix": ["core.lua", "mix.lua"],
 }
 
 TOKEN_RE = re.compile(r"""

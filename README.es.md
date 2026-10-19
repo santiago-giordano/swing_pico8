@@ -4,15 +4,16 @@
 
 *[Read in English](README.md)*
 
-Tres cartuchos de PICO-8 para armar y grabar **lofi por stems**, pensados para consolas de mano (el diseño está probado para la Anbernic RG CubeXX, de pantalla cuadrada):
+Cuatro cartuchos de PICO-8 para armar y grabar **lofi por stems**, pensados para consolas de mano (el diseño está probado para la Anbernic RG CubeXX, de pantalla cuadrada):
 
 | Cartucho | Qué hace |
 |---|---|
 | `swing_beats.p8` | Batería por PCM: 5 pistas, swing con precisión de muestra (estilo MPC y grooves por pista estilo Dilla), nudge por pista, 3 kits, color, saturación, sala y crush |
 | `swing_keys.p8` | Bajo, lead y acordes por grados de la escala, con reverb, filtro, detune, wobble y eco sincronizado por instrumento |
 | `swing_noise.p8` | Ambiente por PCM: vinilo, cinta, lluvia, fuego, mar y noche, con presets, ducking con el bombo, fades y aguja de vinilo |
+| `swing_mix.p8` | Reproduce las tres partes juntas para escuchar la canción completa, con nivel, mute y solo por stem; también graba la mezcla |
 
-Los tres comparten un **archivo de canción** con tempo, swing, tono, escala y arreglo. Cada cartucho graba su stem empezando con un compás de click de conteo, para alinear las tomas en el DAW.
+Los cuatro comparten un **archivo de canción** con tempo, swing, tono, escala y arreglo. Cada cartucho graba su stem empezando con un compás de click de conteo, para alinear las tomas en el DAW.
 
 ![los tres cartuchos](docs/swing_lofi.png)
 
@@ -103,6 +104,16 @@ Keys y noise siguen el swing de la canción; el ducking de noise sigue el timing
 1. Conectá la salida de auriculares a la interfaz o grabadora.
 2. En cada cartucho: *Pausa → grabar canción*. Suena un compás de clicks (el primero más agudo), después el arreglo una vez, y se detiene solo.
 3. En el DAW, alineá las tres tomas por el primer click y cortá el conteo. La humanización usa una semilla fija por canción, así que cada toma suena igual.
+
+## Escuchar todo junto: swing_mix
+
+PICO-8 corre un cartucho a la vez, así que `swing_mix` lleva adentro los tres motores: batería y ruido por PCM, teclas por los canales de chip. Abrí la misma canción, tocá X y reproduce el arreglo (o el patrón A–D en modo loop).
+
+- Página **mezcla**: por stem, un fader (O+↑↓), un medidor y **M**ute / **S**olo (tocar O). Los niveles se guardan en la canción. Solo afectan a swing_mix; los stems que grabás desde cada cartucho no cambian.
+- Página **canción**: tempo, swing, tono y modo. El arreglo acá es de solo lectura; se edita en beats o keys.
+- *Pausa → grabar mezcla* graba la mezcla completa con el mismo conteo, por si querés una toma rápida por la salida de línea.
+- Si la CPU queda por encima de ~88 % sonando, el ruido pasa a media tasa hasta el próximo stop (la página muestra *ruido 1/2*). La batería mantiene siempre la calidad completa.
+- Las teclas se disparan una vez por cuadro, así que en la mezcla pueden quedar hasta un cuadro (~16 ms) corridas de la batería. Los stems grabados no se ven afectados. En los modos de humanización *azar* y *suave*, la mezcla sortea corrimientos distintos a los de los stems, con el mismo carácter; en *fijo* coinciden.
 
 ## Desarrollo
 

@@ -42,4 +42,18 @@
 		<players>1</players>
 		<lang>es</lang>
 	</game>
+	<game>
+		<path>./swing_mix.p8</path>
+		<name>Swing Mix</name>
+		<desc>Escuchá la canción completa: reproduce juntos la batería, las teclas y el ruido de swing_beats, swing_keys y swing_noise, con nivel, mute y solo por stem. También graba la mezcla con click de conteo.</desc>
+		<image>./images/swing_mix-image.png</image>
+		<thumbnail>./images/swing_mix-thumb.png</thumbnail>
+		<video>./videos/swing_mix-video.mp4</video>
+		<releasedate>20261018T000000</releasedate>
+		<developer>Santiago Giordano</developer>
+		<publisher>Santiago Giordano</publisher>
+		<genre>Música</genre>
+		<players>1</players>
+		<lang>es</lang>
+	</game>
 </gameList>
