@@ -122,6 +122,7 @@ No cart stores audio: each one saves its part of the score (steps, notes, kit, g
 - **pattern**: kik / snr / rim / hat / opn, 16 steps, velocities ghost / mid / hard. O+←→ rotates the row.
 - **groove** (Dilla-style microtiming, see below): song swing 50–75% on a 16th or 8th base, per-track swing, per-track nudge −64…+60 ms, flam, level, 8 groove templates/presets, phrase drift and three humanize modes.
 - **kit**: dusty / soft / tape kits (synthesized at load), tune, tone (low-pass), drive, room, crush. Also an engine switch (pcm / chip), a **speaker** switch and a CPU meter.
+- Stopping always ends in silence: once the voices and the room tail have died out the room buffers are cleared.
 - **speaker** (on by default) adds a short mid-range knock and saturation to the kick, so it still reads as a kick on a handheld's small speaker, which can't play its 50–160 Hz body. Turn it off for a rounder kick on headphones or line out.
 - The PCM engine schedules hits at sample level (5512.5 Hz): measured swing and nudge error is under 1 ms.
 </details>
@@ -129,7 +130,7 @@ No cart stores audio: each one saves its part of the score (steps, notes, kit, g
 <details><summary>swing_keys</summary>
 
 - Rows **bas / led / chd**. Bass and lead hold scale degrees 1–14 (two octaves). Chords take degrees 1–7 and are built as diatonic 7th chords with a shell voicing (3rd + 7th), and the chord name is shown (Am7, D7…). **x** cuts the note.
-- **sound** page, per instrument: wave, octave, level, reverb, filter, detune, wobble (vibrato), nudge (−64…+60 ms, e.g. a bass laid back behind the kick). The lead also has a dotted-eighth echo (0–2 repeats) and chords have a slow or fast attack.
+- **sound** page, per instrument: wave, octave, level, reverb, filter, detune, wobble (vibrato), nudge (−64…+60 ms, e.g. a bass laid back behind the kick). The lead also has a dotted-eighth echo (0–2 repeats) and chords have a slow or fast attack. The bass column also has a **speaker** switch (on by default): bass notes below E3 (~160 Hz) go up an octave, since a handheld speaker can't play them. Turn it off for line out. In swing_mix the bass follows the mix page's speaker switch.
 </details>
 
 <details><summary>swing_noise</summary>
@@ -159,7 +160,7 @@ python3 tests/screens.py       # screenshots of every page -> docs/
 - CI (GitHub Actions) runs the build check and all tests on every push. Pushing a `v*` tag publishes a release with the carts zip and the matching CHANGELOG entry.
 - `src/core.lua` is shared by the three carts. It has the song storage, sequencer, audio clock, input, pages and lofi palette. Each cart adds its own engine on top.
 - The tests run the carts in [fake-08](https://github.com/jtothebell/fake-08) with a **test-only patch** that adds the PCM channel (`tests/fake08-test.patch`). This lets the harness render the official-PICO-8 sound path to WAV and measure it.
-- Song file layout, 256 bytes: `0` magic, `2` bpm, `3` swing, `4` key, `5` scale, `6` seed, `7` length, `8` click (0 no, 1 count-in, 2 count-in + metronome), `16–31` arrangement, `32–127` beats, `128–239` keys, `240–255` noise.
+- Song file layout, 256 bytes: `0` magic, `2` bpm, `3` swing, `4` key, `5` scale, `6` seed, `7` length, `8` click (0 no, 1 count-in, 2 count-in + metronome), `16–31` arrangement, `32–127` beats, `128–239` keys (byte 239 bit 5: bass speaker, 0 = on), `240–255` noise.
 
 ### Notes
 

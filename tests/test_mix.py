@@ -125,7 +125,40 @@ def test_metronome():
         assert len(res[1]) == 0
 
 
+
+
+def test_bass_speaker():
+    """speaker on lifts bass notes below ~160 Hz an octave; off leaves them; mix follows byte 127"""
+    freqs = {}
+    for cart in ("swing_keys", "swing_mix"):
+        for on in (True, False):
+            b = song()
+            b[4] = 0        # key C: degree 1 = pitch 0 (65 Hz)
+            b[225] = 0      # bass octave 0
+            b[239] = 128 | (0 if on else 32)
+            if cart == "swing_mix":
+                b[127] = 128 | 3 << 2 | (0 if on else 32)
+                b[239] = 128
+            out = os.path.join(OUT, f"spk_{cart}_{on}")
+            shutil.rmtree(out, ignore_errors=True)
+            sf.write(os.path.join(out, "sys/cdata/swingbox_cancion1.p8d.txt"), b)
+            R.run(R.cart(cart), out, "w 20;t o;w 30;t x;w 20;wav a;w 200;wavend")
+            x, sr = on_load(out)
+            lo = band(x, sr, 40, 400)
+            sp = np.abs(np.fft.rfft(lo * np.hanning(len(lo))))
+            fr = np.fft.rfftfreq(len(lo), 1 / sr)
+            freqs[cart, on] = fr[1:][np.argmax(sp[1:])]
+    print("bass fundamental (Hz):", {f"{k[0]}/{'on' if k[1] else 'off'}": round(float(v)) for k, v in freqs.items()})
+    for cart in ("swing_keys", "swing_mix"):
+        assert 1.8 < freqs[cart, True] / freqs[cart, False] < 2.2
+
+
+def on_load(out):
+    x, sr = on.load(os.path.join(out, "a.wav"))
+    return np.array(x), sr
+
 if __name__ == "__main__":
+    test_bass_speaker()
     test_metronome()
     test_keys_align()
     test_mute()

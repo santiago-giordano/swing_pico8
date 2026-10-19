@@ -557,34 +557,38 @@ function syn(n,f0,f1,pd,ad,ta,na,nd,nc,hp,ck)
  return b
 end
 
-function renderall()
- -- corta las voces: los buffers
- -- nuevos pueden ser mas cortos
- vp={}
+-- una pista: corta su voz porque el
+-- buffer nuevo puede ser mas corto
+function rend(t)
  local k=split(kits[gd(123)+1])
  local tu=tunes[(gd(127)>>2&7)+1]
- for t=1,5 do
-  local o=(t-1)*11
-  local q={unpack(k,o+1,o+11)}
-  q[2]*=tu q[3]*=tu
-  vb[t]=syn(unpack(q))
-  vn[t]=q[1]
- end
+ local q={unpack(k,(t-1)*11+1,t*11)}
+ q[2]*=tu q[3]*=tu
+ vp[t]=nil
+ local b=syn(unpack(q))
  -- parlante: satura el bombo para
  -- que tenga armonicos audibles en
  -- un parlante chico (bit 5 = off)
- if gd(127)&32<1 then
-  local b,ph,a,f=vb[1],0,1,700*tu
+ if t==1 and gd(127)&32<1 then
+  local ph,a,f=0,1,700*tu
   for i,v in ipairs(b) do
    ph+=f/sr f=max(300*tu,f*.997) a*=.993
    v+=sin(ph)*a
    b[i]=v*5/(1+abs(v*4))
   end
  end
+ vb[t]=b vn[t]=q[1]
+end
+function renderall()
+ for t=1,5 do rend(t) end
  cka=syn(140,2200,2200,1,40,1,0,1,1,0,0)
  ckb=syn(140,1600,1600,1,30,.7,0,1,1,0,0)
  mkchip()
 end
+-- en vivo: el bombo ya, el resto
+-- una pista por cuadro (sin picos)
+rq=nil
+function rqueue() rend(1) rq=2 end
 
 function dspvars()
  tc=(gd(124)+1)/8
@@ -594,25 +598,40 @@ function dspvars()
 end
 
 -- ---- motor pcm ----
+-- idl: muestras sin voces. Pasadas
+-- 4000 la sala ya se apago: se
+-- vacia y el motor queda en silencio
+-- exacto (en punto fijo la cola
+-- negativa nunca llega a 0)
+idl=0
+function flush()
+ for i=1,337 do rb[i]=0 rc[i]=0 end
+ lpf=0
+end
 function gen(n)
  for i=0,n-1 do
   if (i>=nxt) service(i)
-  local s=0
+  local s,on=0
   for t=1,6 do
    local p=vp[t]
    if p then
     s+=vb[t][p]*vg[t]
     vp[t]=p<vn[t] and p+1 or nil
+    on=1
    end
   end
-  lpf+=(s-lpf)*tc
-  s=lpf*drv
-  s=s/(1+abs(s)*.5)
-  local a,c=rb[ri],rc[rj]
-  rb[ri]=s+a*.5 rc[rj]=s+c*.45
-  ri=ri%233+1 rj=rj%337+1
-  s+=(a+c)*rm
-  if (cr>0) s=flr(s*cr)/cr
+  idl=on and 0 or min(idl+1,4001)
+  if (idl==4000) flush()
+  if idl<4000 then
+   lpf+=(s-lpf)*tc
+   s=lpf*drv
+   s=s/(1+abs(s)*.5)
+   local a,c=rb[ri],rc[rj]
+   rb[ri]=s+a*.5 rc[rj]=s+c*.45
+   ri=ri%233+1 rj=rj%337+1
+   s+=(a+c)*rm
+   if (cr>0) s=flr(s*cr+.5)/cr
+  end
   poke(0x4300+i,128+mid(-127,127,s*100))
  end
 end
@@ -811,9 +830,9 @@ function kitpage()
  -- en vivo (dspvars): no resintetizan
  local function cs(i) return function(d) clampset(i,d,0,7) end end
  local its={
-  {x=2,y=48,l="kit",v=function() return kitn[gd(123)+1] end,a=function(d) sd(123,(gd(123)+d)%3) renderall() end,w=56},
+  {x=2,y=48,l="kit",v=function() return kitn[gd(123)+1] end,a=function(d) sd(123,(gd(123)+d)%3) rqueue() end,w=56},
   {x=66,y=48,l=tx("afinar","tune"),v=function() return (gd(127)>>2&7)-3 end,a=function(d)
-   local f=gd(127) sd(127,f&0xe3|mid(0,6,(f>>2&7)+d)<<2) renderall() end,w=56},
+   local f=gd(127) sd(127,f&0xe3|mid(0,6,(f>>2&7)+d)<<2) rqueue() end,w=56},
   {x=2,y=60,l=tx("color","tone"),v=function() return gd(124) end,a=cs(124),w=56},
   {x=66,y=60,l=tx("saturar","drive"),v=function() return gd(125) end,a=cs(125),w=56},
   {x=2,y=72,l=tx("sala","room"),v=function() return gd(126) end,a=cs(126),w=56},
@@ -823,7 +842,7 @@ function kitpage()
    if (pcmok) pcm=not pcm
   end,w=56},
   {x=66,y=84,l=tx("parlante","speaker"),v=function() return gd(127)&32<1 and tx("si","on") or "no" end,a=function()
-   sd(127,gd(127)^^32) renderall() end,w=56}}
+   sd(127,gd(127)^^32) rqueue() end,w=56}}
  for t in all(its) do t.k=function() hit(1,3) hit(4,2) end end
  return ipage("kit",its,function()
   if (not pcmok) print(tx("sin pcm: usa pico-8 oficial","no pcm: use official pico-8"),2,106,8)
@@ -880,6 +899,10 @@ function _update60()
   return
  end
  dspvars()
+ if rq then
+  rend(rq)
+  rq=rq<5 and rq+1 or nil
+ end
  if pcm then
   local n=pcmneed(1024)
   if n>0 then

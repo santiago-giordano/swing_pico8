@@ -110,6 +110,9 @@ function play(r,v)
  end
  if r<2 then
   local p=deg(v,kp(r,1))
+  -- parlante: el bajo por debajo de
+  -- mi3 (~160 hz) sube una octava
+  if (r==0 and gd(239)&32<1 and p<16) p+=12
   wsfx(r,r,p) sfx(r,r)
   pl[r]=p lit[r]={p}
  else
@@ -225,7 +228,7 @@ end
 
 function soundpage()
  local its={}
- local rows=split(tx("onda,octava,nivel,reverb,filtro,detune,wobble,nudge,eco/at","wave,octave,level,reverb,filter,detune,wobble,nudge,echo/at"))
+ local rows=split(tx("onda,octava,nivel,reverb,filtro,detune,wobble,nudge,eco/at/parl","wave,octave,level,reverb,filter,detune,wobble,nudge,echo/at/spk"))
  for r=0,2 do
   local x=44+r*28
   local function fxi(b,w,mx)
@@ -240,6 +243,7 @@ function soundpage()
    {v=function() return kp(r,2) end,a=function(d) clampset(226+r*5,d,1,7) end},
    fxi(0,2,2),fxi(2,2,2),fxi(4,2,2),fxi(6,1,1),
    {v=function() return sgd(228+r*5) end,a=function(d) clampset(228+r*5,d*2,0,124) end}}
+  if (r==0) add(def,{v=function() return gd(239)&32<1 and tx("si","on") or "no" end,a=function() sd(239,gd(239)^^32) end})
   if (r==1) add(def,{v=function() return gd(239)&3 end,a=function(d) local f=gd(239) sd(239,f&0xfc|mid(0,2,(f&3)+d)) end})
   if (r==2) add(def,{v=function() return gd(239)&4>0 and tx("len","slow") or tx("rap","fast") end,a=function() sd(239,gd(239)^^4) end})
   for j,t in pairs(def) do

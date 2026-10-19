@@ -143,6 +143,7 @@ function play(r,v)
  mtr[2]=max(mtr[2],ef(1))
  if r<2 then
   local p=deg(v,kp(r,1))
+  if (r==0 and gd(127)&32<1 and p<16) p+=12
   wsfx(r,r,p) sfx(r,r)
   pl[r]=p
  else
@@ -173,6 +174,12 @@ function bars()
 end
 
 -- ---- motor comun ----
+-- idl: ver gen de swing_beats
+idl=0
+function flush()
+ for i=1,337 do rb[i]=0 rc[i]=0 end
+ lpf=0
+end
 function gen(n)
  for i=1,6 do nl[i]=gd(239+i) end
  local l1,l2,l3,l4,l5,l6=unpack(nl)
@@ -184,23 +191,28 @@ function gen(n)
   if (i>=nxt) service(i)
   local o=0
   if gb>0 then
-   local s=0
+   local s,on=0
    for t=1,5 do
     local p=vp[t]
     if p then
      s+=vb[t][p]*vg[t]
      vp[t]=p<vn[t] and p+1 or nil
+     on=1
     end
    end
-   lpf+=(s-lpf)*tc
-   s=lpf*drv
-   s=s/(1+abs(s)*.5)
-   local a,c=rb[ri],rc[rj]
-   rb[ri]=s+a*.5 rc[rj]=s+c*.45
-   ri=ri%233+1 rj=rj%337+1
-   s+=(a+c)*rm
-   if (cr>0) s=flr(s*cr)/cr
-   o=s*gb mb=max(mb,abs(o))
+   idl=on and 0 or min(idl+1,4001)
+   if (idl==4000) flush()
+   if idl<4000 then
+    lpf+=(s-lpf)*tc
+    s=lpf*drv
+    s=s/(1+abs(s)*.5)
+    local a,c=rb[ri],rc[rj]
+    rb[ri]=s+a*.5 rc[rj]=s+c*.45
+    ri=ri%233+1 rj=rj%337+1
+    s+=(a+c)*rm
+    if (cr>0) s=flr(s*cr+.5)/cr
+    o=s*gb mb=max(mb,abs(o))
+   end
   end
   if gn>0 and i%nq==0 then
    local s=0

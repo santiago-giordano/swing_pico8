@@ -2,6 +2,19 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/). Versions follow [SemVer](https://semver.org/).
 
+## [2.6.0] - 2026-10-19
+
+### Fixed
+- With **room** raised, stopping could leave a constant offset on the PCM output (fixed-point math never lets a negative tail reach 0). The drum engine now clears the room buffers once the voices have ended and the tail is gone, and the output is exact silence. Same fix in swing_mix. **crush** now rounds instead of flooring, which removes a small DC bias.
+- Changing kit, tune or speaker on the kit page no longer re-synthesizes all five drums in one frame: the kick updates at once (to listen to it) and the other tracks follow one per frame.
+
+### Added
+- **speaker** option for the bass in swing_keys (sound page, last row of the bass column, on by default): bass notes below E3 (~160 Hz) go up an octave. Song byte 239 bit 5 (0 = on). In swing_mix the bass follows the mix page's speaker switch (byte 127 bit 5).
+- Tests: room tail ends in exact silence (beats and mix, with and without crush); bass fundamental doubles with speaker on (keys and mix).
+
+### Changed
+- The drum engine skips its filter, saturation and room work while no voice is playing, which also lowers CPU in swing_beats and swing_mix between hits and when stopped.
+
 ## [2.5.0] - 2026-10-19
 
 ### Added
