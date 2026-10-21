@@ -1,5 +1,7 @@
 # swing_pico8
 
+![Swing Lofi: lofi beats con swing de J Dilla](itch/banner.png)
+
 [![ci](https://github.com/santiago-giordano/swing_pico8/actions/workflows/ci.yml/badge.svg)](https://github.com/santiago-giordano/swing_pico8/actions/workflows/ci.yml) [![release](https://img.shields.io/github/v/release/santiago-giordano/swing_pico8)](https://github.com/santiago-giordano/swing_pico8/releases/latest) [![license: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 *[Read in English](README.md)*
