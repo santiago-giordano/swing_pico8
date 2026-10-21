@@ -8,9 +8,8 @@ This folder holds the assets for that page:
 |---|---|
 | `cover.png` | Cover image (630×500, itch's recommended size) |
 | `screenshots/` | Page screenshots, in this order: `swing_beats.png`, `swing_keys.png`, `swing_noise.png`, `swing_mix.png`, `all_pages.png` |
-| `PAGE.en.md`, `PAGE.es.md` | Tagline, description and metadata |
 
-The download on itch is the same zip as the [GitHub release](https://github.com/santiago-giordano/swing_pico8/releases/latest).
+The page text is kept on itch.io only. The download on itch is the same zip as the [GitHub release](https://github.com/santiago-giordano/swing_pico8/releases/latest).
 
 ## Updating
 
