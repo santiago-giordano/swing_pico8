@@ -2,6 +2,11 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/). Versions follow [SemVer](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- Links to the itch.io page (https://giordams.itch.io/swing-lofi) and the YouTube preview video in both READMEs and the itch kit.
+
 ## [2.9.0] - 2026-10-19
 
 ### Changed

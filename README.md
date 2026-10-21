@@ -15,6 +15,8 @@ Four PICO-8 carts for making and recording **lofi beats in stems**, built for ha
 
 All four share one **song file**: tempo, swing, key, scale and the arrangement. Each cart records its own stem, starting with a 1-bar click count-in, so the takes line up in your DAW.
 
+**Get it on [itch.io](https://giordams.itch.io/swing-lofi)** · **[1-minute preview on YouTube](https://www.youtube.com/watch?v=n9OyCdPD6Is)** (the four carts playing, one after another)
+
 ![the three carts](docs/swing_lofi.png)
 
 ## Listen

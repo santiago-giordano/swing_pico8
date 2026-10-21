@@ -2,6 +2,8 @@
 
 Everything to publish swing_pico8 on itch.io with your own account.
 
+Published at https://giordams.itch.io/swing-lofi, with the [preview video](https://www.youtube.com/watch?v=n9OyCdPD6Is) on YouTube (English carts, 16 s each: beats, keys, noise, mix, captured with the test rig like `tools/media.py` does).
+
 | File | Use |
 |---|---|
 | `cover.png` | Cover image (630×500, itch's recommended size) |
@@ -12,10 +14,10 @@ Everything to publish swing_pico8 on itch.io with your own account.
 ## Steps
 
 1. itch.io → Dashboard → **Create new project**.
-2. Title `Swing PICO-8`, URL `swing-pico8`. Paste the tagline and description (English first; add Spanish below it, itch has no per-language page).
+2. Title `Swing Lofi`, URL `swing-lofi`. Paste the tagline and description (English first; add Spanish below it, itch has no per-language page).
 3. Kind of project: Downloadable. Fill pricing and tags from the bottom of `PAGE.en.md`.
 4. Upload the zip, tick Windows / macOS / Linux.
-5. Cover image + screenshots. For video, paste a YouTube link of the CubeXX recording (itch doesn't host mp4 on the page).
+5. Cover image + screenshots. For video, paste a YouTube link (itch doesn't host mp4 on the page); currently the preview above.
 6. Save as **Draft**, preview, then set Visibility to Public.
 
 ## Updating

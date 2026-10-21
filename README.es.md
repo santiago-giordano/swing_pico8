@@ -15,6 +15,8 @@ Cuatro cartuchos de PICO-8 para armar y grabar **lofi por stems**, pensados para
 
 Los cuatro comparten un **archivo de canción** con tempo, swing, tono, escala y arreglo. Cada cartucho graba su stem empezando con un compás de click de conteo, para alinear las tomas en el DAW.
 
+**Bajalo de [itch.io](https://giordams.itch.io/swing-lofi)** · **[Preview de 1 minuto en YouTube](https://www.youtube.com/watch?v=n9OyCdPD6Is)** (los cuatro cartuchos sonando, uno tras otro)
+
 ![los tres cartuchos](docs/swing_lofi.png)
 
 ## Escuchá
