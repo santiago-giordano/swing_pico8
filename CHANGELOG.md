@@ -7,6 +7,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/). Versions follow
 ### Added
 - Links to the itch.io page (https://giordams.itch.io/swing-lofi) and the YouTube preview video in both READMEs and the itch kit.
 
+### Fixed
+- READMEs: swing_mix in the PICO-8 compatibility table and the dev test list; "four carts" where they still said three; song file layout lists the groove, flam, button-label and mix bytes; removed a reference to private project notes.
+
 ## [2.9.0] - 2026-10-19
 
 ### Changed

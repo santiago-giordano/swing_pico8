@@ -7,7 +7,7 @@ PICO-8) and writes, under knulli/:
   images/<cart>-image.png   screenshot while playing (main page)
   images/<cart>-thumb.png   song picker / title screen
   videos/<cart>-video.mp4   ~16 s capture of the cart playing, with its stem
-  gamelist.xml              metadata for the three carts (Spanish)
+  gamelist.xml              metadata for the four carts (Spanish)
   gamelist.en.xml           same, in English
 
 Needs the test rig (bash tests/setup.sh), Pillow and ffmpeg.
@@ -47,7 +47,7 @@ META = {
 
 
 def song():
-    """default song written by the three carts, with the drunk groove applied"""
+    """default song written by the beats, keys and noise carts, with the drunk groove applied"""
     d = os.path.join(WORK, "init")
     if not os.path.exists(d):
         for c in CARTS[:3]:

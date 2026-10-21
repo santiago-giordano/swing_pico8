@@ -47,21 +47,21 @@ En cualquiera de las dos se cambia el idioma con **X** en la pantalla de elegir 
 
 ### Imágenes y videos en la lista (Knulli / Batocera)
 
-La carpeta `knulli/` trae la metadata para que los tres cartuchos aparezcan con descripción, captura y video en la lista de PICO-8:
+La carpeta `knulli/` trae la metadata para que los cuatro cartuchos aparezcan con descripción, captura y video en la lista de PICO-8:
 
 1. Copiá `knulli/images/` y `knulli/videos/` dentro de `roms/pico8/` (quedan `roms/pico8/images/…` y `roms/pico8/videos/…`).
 2. Si **no** tenés `roms/pico8/gamelist.xml`, copiá `knulli/gamelist.xml` ahí (o `gamelist.en.xml` renombrado, para la versión en inglés).
-3. Si **ya** tenés uno (por haber scrapeado otros juegos), abrilo y pegá los tres bloques `<game>…</game>` de `knulli/gamelist.xml` antes de `</gameList>`.
+3. Si **ya** tenés uno (por haber scrapeado otros juegos), abrilo y pegá los cuatro bloques `<game>…</game>` de `knulli/gamelist.xml` antes de `</gameList>`.
 4. Start → *Game Settings → Update Gamelists*.
 
 Hacelo con la interfaz de Knulli cerrada o reiniciala después: EmulationStation reescribe el gamelist al salir.
 
 ### ¿Qué PICO-8?
 
-| Motor | beats | keys | noise |
-|---|---|---|---|
-| PICO-8 oficial (0.2.4+) | completo (PCM) | completo | completo |
-| fake-08 (el de Knulli por defecto) | modo "chip" de respaldo | completo | sin sonido |
+| Motor | beats | keys | noise | mix |
+|---|---|---|---|---|
+| PICO-8 oficial (0.2.4+) | completo (PCM) | completo | completo | completo |
+| fake-08 (el de Knulli por defecto) | modo "chip" de respaldo | completo | sin sonido | sin sonido (muestra un aviso) |
 
 La batería y los ruidos usan el canal PCM de PICO-8 (`serial(0x808)`), que fake-08 no implementa. En Knulli el oficial se instala desde *Device Settings → Install Pico-8*; después elegí el emulador **LEXALOFFLE: PICO8 OFFICIAL**. Más detalles en la [documentación de Knulli](https://knulli.org/systems/pico-8).
 
@@ -82,7 +82,7 @@ Este README usa los nombres de PICO-8, **O** y **X**. La línea de ayuda en pant
 
 ## Canciones
 
-- Al abrir un cartucho elegís la canción, de c1 a c8. **Elegí la misma en los tres.**
+- Al abrir un cartucho elegís la canción, de c1 a c8. **Elegí la misma en todos.**
 - Cada canción es un archivo de cartdata, `swingbox_cancionN.p8d.txt`, en la carpeta `cdata` de PICO-8. Copiando ese archivo respaldás o compartís la canción entera.
 - En la página **canción** se configuran BPM, swing, tono, escala, largo del arreglo, click y modo (loop o cadena). **click**: *no*; *rec* = un compás de conteo solo al grabar (por defecto); *met* = el mismo conteo más un metrónomo en cada tiempo mientras tocás, nunca en la grabación. En swing_keys el metrónomo comparte canal con los acordes, así que puede cortar la 7.ª del acorde en cada tiempo. El arreglo tiene 16 bloques. Cada bloque elige un patrón de beats (letra de arriba) y uno de keys (letra de abajo), y se repite de ×1 a ×8. Cada parte se puede silenciar por bloque para hacer breaks. **relleno** (swing_beats y swing_mix): en el último compás de cada bloque que se repite ×2 o más suma un hat abierto en el paso 16 (*hat*), un redoble de caja en los pasos 13–16 (*caja*) o ambos; también queda en las grabaciones, y los bloques que suenan una vez no llevan relleno. **poli** (swing_beats y swing_mix): una pista por canción (k, s, r, h u o) corre en su propia grilla de 12 (tresillos de corchea), 10 (quintillos de corchea), 14 (septillos de corchea) u 8 celdas por compás, contra las 16 rectas de las demás. O+←→ elige la pista, O+↑↓ la grilla. En la página patrón esa fila muestra menos celdas, más anchas. El nudge y la humanización siguen valiendo; el swing, los templates de groove y el relleno no. **ref bat** (swing_keys): hace sonar la batería de la canción debajo de las teclas mientras tocás, para escribir contra el groove. Se apaga al grabar, así el stem de keys queda limpio; las notas de keys se demoran lo que tarda el PCM (~100 ms) para quedar a tiempo con la batería, y necesita el PICO-8 oficial (en fake-08 no hace nada).
 
@@ -133,11 +133,12 @@ python3 tests/test_timing.py   # precisión de swing y nudge midiendo el audio
 python3 tests/test_groove.py   # swing por pista, templates, flam, deriva, modos de humanización
 python3 tests/test_sync.py     # graba los 3 stems y verifica que queden alineados
 python3 tests/test_live_edit.py   # editar kit o afinación sonando no debe colgarse
+python3 tests/test_mix.py      # swing_mix: alineación keys/batería, mute/solo, grabar mezcla
 python3 tests/screens.py       # capturas de todas las páginas -> docs/
 ```
 
 - La CI (GitHub Actions) corre el chequeo de build y todos los tests en cada push. Al subir un tag `v*` se publica un release con el zip de cartuchos y la entrada correspondiente del CHANGELOG.
-- `src/core.lua` es común a los tres cartuchos: canción, secuenciador, reloj de audio, input, páginas y paleta.
+- `src/core.lua` es común a los cuatro cartuchos: canción, secuenciador, reloj de audio, input, páginas y paleta.
 - Los tests corren los cartuchos en fake-08 con un **parche solo para pruebas** que agrega el canal PCM (`tests/fake08-test.patch`). Así se puede grabar a WAV y medir el sonido que daría el PICO-8 oficial.
 - Parlante: el de una consola portátil no reproduce el cuerpo del bombo (50–160 Hz). La opción **parlante** de la página kit (activada por defecto) le suma un golpe corto en medios y saturación para que se siga oyendo como bombo. Con auriculares o por la salida de línea podés apagarla y queda un bombo más redondo. En swing_keys, la página sonido tiene otra opción **parlante** para el bajo (activada por defecto): las notas por debajo de mi3 (~160 Hz) suben una octava, porque ese parlante no las reproduce; en swing_mix el bajo sigue la opción de la página mezcla. Al parar, la sala se apaga del todo: cuando terminan las voces y la cola, se vacían sus buffers.
 - CPU: en una Anbernic RG CubeXX (Knulli, PICO-8 oficial) swing_beats midió alrededor de 35–40 % sonando. La de swing_noise sigue estimada (22–46 % con todas las capas al máximo). Las páginas kit y fx muestran la CPU.
