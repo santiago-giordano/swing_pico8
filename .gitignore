@@ -2,3 +2,11 @@ tests/.work/
 __pycache__/
 *.pyc
 itch/*.zip
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+.venv/
