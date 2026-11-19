@@ -10,3 +10,6 @@ desktop.ini
 .vscode/
 .idea/
 .venv/
+
+# Working notes
+songs/chat_log.md
